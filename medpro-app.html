@@ -11174,130 +11174,160 @@ function seleccionarPacienteDocRapido(pi, tipo) {
 }
 
 
-// ══ FASE 7 — GOOGLE DRIVE + PDF ══
+// ══ FASE 7 — GOOGLE DRIVE + PDF (GIS) ══
 // ══════════════════════════════════════════════════════════════
-// FASE 7 — GOOGLE DRIVE + PDF REAL
+// FASE 7 — GOOGLE DRIVE + PDF (usando Google Identity Services)
 // ══════════════════════════════════════════════════════════════
 
-// ── Configuración Google ──────────────────────────────────────
 var DRIVE_CONFIG = {
-  clientId: '',        // Se configura en ⚙️ Configuración → ☁️ Drive
-  apiKey: '',          // Opcional, para operaciones de lectura
+  clientId: '',
   scope: 'https://www.googleapis.com/auth/drive.file',
-  discoveryDoc: 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
   fileName: 'medpro-data.json',
-  fileId: null,        // Guardado tras primera sincronización
+  fileId: null,
   isSignedIn: false,
-  isLoaded: false,
+  tokenClient: null,
+  accessToken: null,
 };
 
-// ── Estado de sync ─────────────────────────────────────────────
 var driveState = {
   lastSync: null,
   pendingChanges: false,
   syncInProgress: false,
 };
 
-// ══════════════════════════════════════════════════════════════
-// CARGA DE LA LIBRERÍA GAPI
-// ══════════════════════════════════════════════════════════════
-function loadGapiScript() {
-  if (window.gapi) { initGapiClient(); return; }
-  const script = document.createElement('script');
-  script.src = 'https://apis.google.com/js/api.js';
-  script.onload = () => {
-    gapi.load('client:auth2', initGapiClient);
-  };
-  script.onerror = () => {
-    showToast('Error de red', 'No se pudo cargar la API de Google', true);
-    updateDriveStatusUI('error');
-  };
-  document.head.appendChild(script);
+// ── Cargar librerías ──────────────────────────────────────────
+function loadDriveLibraries(callback) {
+  var loaded = 0;
+  var needed = 2;
+  var done = function() { loaded++; if (loaded >= needed && callback) callback(); };
+
+  // Google Identity Services
+  if (!window.google?.accounts) {
+    var s1 = document.createElement('script');
+    s1.src = 'https://accounts.google.com/gsi/client';
+    s1.onload = done;
+    s1.onerror = function() {
+      showToast('Error de red', 'No se pudo cargar Google Identity Services', true);
+      updateDriveStatusUI('error');
+    };
+    document.head.appendChild(s1);
+  } else { done(); }
+
+  // Google API client
+  if (!window.gapi) {
+    var s2 = document.createElement('script');
+    s2.src = 'https://apis.google.com/js/api.js';
+    s2.onload = function() {
+      gapi.load('client', done);
+    };
+    s2.onerror = function() {
+      showToast('Error de red', 'No se pudo cargar Google API', true);
+      updateDriveStatusUI('error');
+    };
+    document.head.appendChild(s2);
+  } else if (window.gapi && !window.gapi.client) {
+    gapi.load('client', done);
+  } else { done(); }
 }
 
-function initGapiClient() {
-  const clientId = document.getElementById('cfg-drive-client-id')?.value?.trim()
-    || App.driveClientId || '';
-  if (!clientId) {
-    updateDriveStatusUI('no-config');
-    return;
-  }
-  gapi.client.init({
-    clientId: clientId,
-    scope: DRIVE_CONFIG.scope,
-    discoveryDocs: [DRIVE_CONFIG.discoveryDoc],
-  }).then(() => {
-    DRIVE_CONFIG.isLoaded = true;
-    DRIVE_CONFIG.clientId = clientId;
-    const authInstance = gapi.auth2.getAuthInstance();
-    DRIVE_CONFIG.isSignedIn = authInstance.isSignedIn.get();
-    authInstance.isSignedIn.listen(onSignInChange);
-    updateDriveStatusUI(DRIVE_CONFIG.isSignedIn ? 'signed-in' : 'signed-out');
-    if (DRIVE_CONFIG.isSignedIn) loadFromDrive();
-  }).catch(err => {
-    console.error('GAPI init error:', err);
+function initDriveClient(clientId) {
+  DRIVE_CONFIG.clientId = clientId;
+
+  // Initialize gapi client
+  gapi.client.init({}).then(function() {
+    return gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
+  }).then(function() {
+    // Initialize token client (GIS)
+    DRIVE_CONFIG.tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: DRIVE_CONFIG.scope,
+      callback: function(tokenResponse) {
+        if (tokenResponse.error) {
+          showToast('Error de autenticación', tokenResponse.error, true);
+          updateDriveStatusUI('signed-out');
+          return;
+        }
+        DRIVE_CONFIG.accessToken = tokenResponse.access_token;
+        DRIVE_CONFIG.isSignedIn = true;
+        gapi.client.setToken({ access_token: tokenResponse.access_token });
+        updateDriveStatusUI('signed-in');
+        showToast('✅ Conectado a Google Drive', '');
+        loadFromDrive();
+      },
+    });
+    updateDriveStatusUI('signed-out');
+  }).catch(function(err) {
+    console.error('Drive init error:', err);
     updateDriveStatusUI('error');
-    showToast('Error de autenticación', err.details || err.error || 'Verifica el Client ID', true);
+    showToast('Error', 'Verifica el Client ID y los orígenes autorizados', true);
   });
-}
-
-function onSignInChange(isSignedIn) {
-  DRIVE_CONFIG.isSignedIn = isSignedIn;
-  updateDriveStatusUI(isSignedIn ? 'signed-in' : 'signed-out');
-  if (isSignedIn) loadFromDrive();
 }
 
 function signInGoogle() {
-  if (!DRIVE_CONFIG.isLoaded) { loadGapiScript(); return; }
-  gapi.auth2.getAuthInstance().signIn().catch(err => {
-    showToast('Error al iniciar sesión', err.error || 'Intenta nuevamente', true);
-  });
+  var clientId = document.getElementById('cfg-drive-client-id')?.value?.trim() || App.driveClientId;
+  if (!clientId) {
+    showToast('Client ID requerido', 'Ingresa el Client ID primero', true);
+    return;
+  }
+  if (!DRIVE_CONFIG.tokenClient) {
+    updateDriveStatusUI('syncing');
+    loadDriveLibraries(function() { initDriveClient(clientId); setTimeout(signInGoogle, 500); });
+    return;
+  }
+  DRIVE_CONFIG.tokenClient.requestAccessToken({ prompt: 'consent' });
 }
 
 function signOutGoogle() {
-  if (!DRIVE_CONFIG.isLoaded) return;
-  gapi.auth2.getAuthInstance().signOut().then(() => {
-    DRIVE_CONFIG.isSignedIn = false;
-    updateDriveStatusUI('signed-out');
-    showToast('Sesión cerrada', 'Desconectado de Google Drive');
-  });
+  if (DRIVE_CONFIG.accessToken) {
+    google.accounts.oauth2.revoke(DRIVE_CONFIG.accessToken, function() {
+      DRIVE_CONFIG.accessToken = null;
+      DRIVE_CONFIG.isSignedIn = false;
+      gapi.client.setToken(null);
+      updateDriveStatusUI('signed-out');
+      showToast('Sesión cerrada', 'Desconectado de Google Drive');
+    });
+  }
 }
 
-function updateDriveStatusUI(status) {
-  const statusEl = document.getElementById('drive-status');
-  const btnSignIn = document.getElementById('btn-drive-signin');
-  const btnSignOut = document.getElementById('btn-drive-signout');
-  const btnSync = document.getElementById('btn-drive-sync');
-  const topbarSync = document.getElementById('topbar-sync-btn');
+function saveDriveConfig() {
+  var clientId = document.getElementById('cfg-drive-client-id')?.value?.trim();
+  if (!clientId) { showToast('Client ID requerido', '', true); return; }
+  App.driveClientId = clientId;
+  DRIVE_CONFIG.clientId = clientId;
+  markDirty();
+  showToast('Conectando…', 'Cargando librerías de Google');
+  updateDriveStatusUI('syncing');
+  loadDriveLibraries(function() { initDriveClient(clientId); });
+}
 
-  const states = {
-    'no-config':  { icon:'☁️', text:'Sin configurar', color:'var(--text-lt)', btnIn:true,  btnOut:false, btnSync:false },
-    'signed-out': { icon:'🔒', text:'No conectado',   color:'var(--text-lt)', btnIn:true,  btnOut:false, btnSync:false },
-    'signed-in':  { icon:'✅', text:'Conectado',       color:'var(--teal)',    btnIn:false, btnOut:true,  btnSync:true  },
-    'syncing':    { icon:'🔄', text:'Sincronizando…', color:'var(--blue)',    btnIn:false, btnOut:false, btnSync:false },
-    'synced':     { icon:'☁️', text:'Sincronizado',    color:'var(--teal)',    btnIn:false, btnOut:true,  btnSync:true  },
-    'error':      { icon:'⚠️', text:'Error',           color:'var(--red)',     btnIn:true,  btnOut:false, btnSync:false },
+// ── UI Status ─────────────────────────────────────────────────
+function updateDriveStatusUI(status) {
+  var statusEl = document.getElementById('drive-status');
+  var btnSignIn = document.getElementById('btn-drive-signin');
+  var btnSignOut = document.getElementById('btn-drive-signout');
+  var btnSync = document.getElementById('btn-drive-sync');
+  var topbarSync = document.getElementById('topbar-sync-btn');
+
+  var states = {
+    'no-config':  { icon:'☁️',  text:'Sin configurar',   color:'var(--text-lt)', btnIn:false, btnOut:false, btnSync:false },
+    'signed-out': { icon:'🔒',  text:'No conectado',     color:'var(--text-lt)', btnIn:true,  btnOut:false, btnSync:false },
+    'signed-in':  { icon:'✅',  text:'Conectado',         color:'var(--teal)',    btnIn:false, btnOut:true,  btnSync:true  },
+    'syncing':    { icon:'🔄',  text:'Sincronizando…',   color:'var(--blue)',    btnIn:false, btnOut:false, btnSync:false },
+    'synced':     { icon:'☁️',  text:'Sincronizado',      color:'var(--teal)',    btnIn:false, btnOut:true,  btnSync:true  },
+    'error':      { icon:'⚠️',  text:'Error de conexión', color:'var(--red)',     btnIn:true,  btnOut:false, btnSync:false },
   };
 
-  const s = states[status] || states['no-config'];
-  if (statusEl) {
-    statusEl.innerHTML = `<span style="color:${s.color}">${s.icon} ${s.text}</span>`;
-  }
-  if (btnSignIn)  btnSignIn.style.display  = s.btnIn   ? 'inline-flex' : 'none';
-  if (btnSignOut) btnSignOut.style.display = s.btnOut  ? 'inline-flex' : 'none';
-  if (btnSync)    btnSync.style.display    = s.btnSync ? 'inline-flex' : 'none';
-  if (topbarSync) {
-    topbarSync.title = s.text;
-    topbarSync.style.color = s.color;
-    topbarSync.textContent = s.icon;
-  }
+  var s = states[status] || states['no-config'];
+  if (statusEl) statusEl.innerHTML = '<span style="color:'+s.color+'">'+s.icon+' '+s.text+'</span>';
+  if (btnSignIn)  btnSignIn.style.display  = s.btnIn   ? '' : 'none';
+  if (btnSignOut) btnSignOut.style.display = s.btnOut  ? '' : 'none';
+  if (btnSync)    btnSync.style.display    = s.btnSync ? '' : 'none';
+  if (topbarSync) { topbarSync.textContent = s.icon; topbarSync.title = s.text; topbarSync.style.color = s.color; }
 }
 
-// ══════════════════════════════════════════════════════════════
-// GUARDAR EN DRIVE
-// ══════════════════════════════════════════════════════════════
+// ── Guardar en Drive ──────────────────────────────────────────
 function saveToDrive(silent) {
-  if (!DRIVE_CONFIG.isSignedIn) {
+  if (!DRIVE_CONFIG.isSignedIn || !DRIVE_CONFIG.accessToken) {
     if (!silent) showToast('No conectado', 'Inicia sesión con Google primero', true);
     return;
   }
@@ -11305,167 +11335,108 @@ function saveToDrive(silent) {
   driveState.syncInProgress = true;
   updateDriveStatusUI('syncing');
 
-  const data = JSON.stringify({
-    version: 7,
-    savedAt: new Date().toISOString(),
+  var data = JSON.stringify({
+    version: 7, savedAt: new Date().toISOString(),
     App: {
-      pacientes: App.pacientes,
-      citas: App.citas,
-      citaSeq: App.citaSeq,
-      equipo: App.equipo,
-      listas: App.listas,
-      secuencias: App.secuencias,
-      bgColor: App.bgColor,
-      logoSrc: App.logoSrc,
-      firmaSrc: App.firmaSrc,
-      logoSize: App.logoSize,
-      firmaSize: App.firmaSize,
-      driveClientId: App.driveClientId,
-      driveFileId: App.driveFileId,
+      pacientes: App.pacientes, citas: App.citas, citaSeq: App.citaSeq,
+      equipo: App.equipo, listas: App.listas, secuencias: App.secuencias,
+      bgColor: App.bgColor, logoSrc: App.logoSrc, firmaSrc: App.firmaSrc,
+      logoSize: App.logoSize, firmaSize: App.firmaSize,
+      driveClientId: App.driveClientId, driveFileId: App.driveFileId,
     }
-  }, null, 2);
+  });
 
-  const fileMetadata = { name: DRIVE_CONFIG.fileName, mimeType: 'application/json' };
-  const fileId = App.driveFileId || DRIVE_CONFIG.fileId;
+  var fileId = App.driveFileId || DRIVE_CONFIG.fileId;
 
-  const doSave = (id) => {
-    const method = id ? 'PATCH' : 'POST';
-    const url = id
-      ? `https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=multipart`
-      : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+  var doUpload = function(id) {
+    var url = id
+      ? 'https://www.googleapis.com/upload/drive/v3/files/' + id + '?uploadType=media'
+      : null;
 
-    const boundary = '-------medpro_boundary';
-    const body = [
-      `--${boundary}`,
-      'Content-Type: application/json; charset=UTF-8',
-      '',
-      JSON.stringify(fileMetadata),
-      `--${boundary}`,
-      'Content-Type: application/json',
-      '',
-      data,
-      `--${boundary}--`,
-    ].join('\r\n');
-
-    return gapi.client.request({
-      path: url.replace('https://www.googleapis.com',''),
-      method: method,
-      headers: { 'Content-Type': `multipart/related; boundary="${boundary}"` },
-      body: body,
-    });
+    if (id) {
+      // Update existing
+      return fetch('https://www.googleapis.com/upload/drive/v3/files/' + id + '?uploadType=media', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': 'Bearer ' + DRIVE_CONFIG.accessToken,
+          'Content-Type': 'application/json',
+        },
+        body: data,
+      }).then(function(r) { return r.json(); });
+    } else {
+      // Create new with metadata
+      var form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify({ name: DRIVE_CONFIG.fileName, mimeType: 'application/json' })], { type: 'application/json' }));
+      form.append('file', new Blob([data], { type: 'application/json' }));
+      return fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + DRIVE_CONFIG.accessToken },
+        body: form,
+      }).then(function(r) { return r.json(); });
+    }
   };
 
-  // If we have a fileId, update; otherwise create
-  const savePromise = fileId ? doSave(fileId) : findOrCreateFile(data);
+  var saveOp = fileId ? doUpload(fileId) : findExistingFile().then(function(id) { return doUpload(id); });
 
-  savePromise.then(resp => {
-    const result = resp.result || JSON.parse(resp.body||'{}');
-    if (result.id) {
-      App.driveFileId = result.id;
-      DRIVE_CONFIG.fileId = result.id;
-    }
+  saveOp.then(function(result) {
+    if (result.id) { App.driveFileId = result.id; DRIVE_CONFIG.fileId = result.id; }
     driveState.lastSync = new Date();
     driveState.pendingChanges = false;
     driveState.syncInProgress = false;
     updateDriveStatusUI('synced');
-    updateLastSyncDisplay();
-    if (!silent) showToast('✅ Guardado en Drive', new Date().toLocaleTimeString());
-  }).catch(err => {
+    var el = document.getElementById('drive-last-sync');
+    if (el) el.textContent = 'Última sync: ' + driveState.lastSync.toLocaleTimeString();
+    if (!silent) showToast('✅ Guardado en Drive', driveState.lastSync.toLocaleTimeString());
+  }).catch(function(err) {
     driveState.syncInProgress = false;
     updateDriveStatusUI('signed-in');
-    if (!silent) showToast('Error al guardar', err.result?.error?.message || 'Intenta nuevamente', true);
-    console.error('Drive save error:', err);
+    if (!silent) showToast('Error al guardar', err.message || '', true);
+    console.error('Save error:', err);
   });
 }
 
-function findOrCreateFile(data) {
-  // Search for existing file
-  return gapi.client.drive.files.list({
-    q: `name='${DRIVE_CONFIG.fileName}' and trashed=false`,
-    spaces: 'drive',
-    fields: 'files(id, name)',
-  }).then(resp => {
-    const files = resp.result.files || [];
-    if (files.length > 0) {
-      DRIVE_CONFIG.fileId = files[0].id;
-      App.driveFileId = files[0].id;
-      return updateFileContent(files[0].id, data);
-    } else {
-      return createNewFile(data);
-    }
+function findExistingFile() {
+  return fetch('https://www.googleapis.com/drive/v3/files?q=name%3D%27medpro-data.json%27+and+trashed%3Dfalse&fields=files(id)', {
+    headers: { 'Authorization': 'Bearer ' + DRIVE_CONFIG.accessToken }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    var files = data.files || [];
+    if (files.length > 0) { DRIVE_CONFIG.fileId = files[0].id; App.driveFileId = files[0].id; }
+    return files.length > 0 ? files[0].id : null;
   });
 }
 
-function updateFileContent(fileId, data) {
-  return gapi.client.request({
-    path: `/upload/drive/v3/files/${fileId}?uploadType=media`,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: data,
-  });
-}
-
-function createNewFile(data) {
-  const boundary = '-------medpro_new';
-  const meta = JSON.stringify({ name: DRIVE_CONFIG.fileName, mimeType: 'application/json' });
-  const body = [`--${boundary}`, 'Content-Type: application/json; charset=UTF-8', '', meta,
-    `--${boundary}`, 'Content-Type: application/json', '', data, `--${boundary}--`].join('\r\n');
-  return gapi.client.request({
-    path: '/upload/drive/v3/files?uploadType=multipart',
-    method: 'POST',
-    headers: { 'Content-Type': `multipart/related; boundary="${boundary}"` },
-    body: body,
-  });
-}
-
-// ══════════════════════════════════════════════════════════════
-// CARGAR DESDE DRIVE
-// ══════════════════════════════════════════════════════════════
+// ── Cargar desde Drive ────────────────────────────────────────
 function loadFromDrive() {
   if (!DRIVE_CONFIG.isSignedIn) return;
   updateDriveStatusUI('syncing');
 
-  gapi.client.drive.files.list({
-    q: `name='${DRIVE_CONFIG.fileName}' and trashed=false`,
-    spaces: 'drive',
-    fields: 'files(id, name, modifiedTime)',
-    orderBy: 'modifiedTime desc',
-  }).then(resp => {
-    const files = resp.result.files || [];
-    if (files.length === 0) {
+  findExistingFile().then(function(fileId) {
+    if (!fileId) {
       updateDriveStatusUI('signed-in');
-      showToast('Drive conectado', 'No se encontraron datos previos. Se guardarán al siguiente cambio.');
+      showToast('Drive conectado', 'No hay datos previos. Se guardarán automáticamente.');
       return;
     }
-    const file = files[0];
-    DRIVE_CONFIG.fileId = file.id;
-    return gapi.client.drive.files.get({
-      fileId: file.id,
-      alt: 'media',
-    });
-  }).then(resp => {
-    if (!resp) return;
-    const saved = typeof resp.result === 'object' ? resp.result : JSON.parse(resp.body||'{}');
-    if (saved.App) {
-      mergeAppData(saved.App);
-      updateDriveStatusUI('synced');
-      driveState.lastSync = new Date();
-      updateLastSyncDisplay();
-      showToast('✅ Datos cargados desde Drive', 'Guardado: ' + new Date(saved.savedAt).toLocaleString());
-      // Refresh UI
-      renderPacientesDashboard();
-      renderPacientesPanel();
-      initDashboard();
-    }
-  }).catch(err => {
+    return fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
+      headers: { 'Authorization': 'Bearer ' + DRIVE_CONFIG.accessToken }
+    }).then(function(r) { return r.json(); });
+  }).then(function(saved) {
+    if (!saved || !saved.App) return;
+    mergeAppData(saved.App);
+    updateDriveStatusUI('synced');
+    driveState.lastSync = new Date();
+    var el = document.getElementById('drive-last-sync');
+    if (el) el.textContent = 'Última sync: ' + driveState.lastSync.toLocaleTimeString();
+    showToast('✅ Datos cargados desde Drive', new Date(saved.savedAt).toLocaleString());
+    renderPacientesDashboard();
+    renderPacientesPanel();
+    initDashboard();
+  }).catch(function(err) {
     updateDriveStatusUI('signed-in');
-    console.error('Drive load error:', err);
-    showToast('Error al cargar datos', err.result?.error?.message || '', true);
+    console.error('Load error:', err);
   });
 }
 
 function mergeAppData(saved) {
-  // Careful merge — preserve structure
   if (saved.pacientes?.length) App.pacientes = saved.pacientes;
   if (saved.citas?.length) App.citas = saved.citas;
   if (saved.citaSeq) App.citaSeq = saved.citaSeq;
@@ -11479,361 +11450,191 @@ function mergeAppData(saved) {
   if (saved.driveClientId) App.driveClientId = saved.driveClientId;
 }
 
-function updateLastSyncDisplay() {
-  const el = document.getElementById('drive-last-sync');
-  if (el && driveState.lastSync) {
-    el.textContent = 'Última sync: ' + driveState.lastSync.toLocaleTimeString();
-  }
-}
-
-// Auto-save every 2 minutes if there are pending changes
-setInterval(() => {
-  if (driveState.pendingChanges && DRIVE_CONFIG.isSignedIn) {
-    saveToDrive(true);
-  }
-}, 2 * 60 * 1000);
-
-// Mark pending changes on any data modification
 function markDirty() {
   driveState.pendingChanges = true;
-  const topbarSync = document.getElementById('topbar-sync-btn');
-  if (topbarSync && DRIVE_CONFIG.isSignedIn) {
-    topbarSync.textContent = '💾';
-    topbarSync.title = 'Cambios sin guardar — toca para sincronizar';
-  }
+  var btn = document.getElementById('topbar-sync-btn');
+  if (btn && DRIVE_CONFIG.isSignedIn) { btn.textContent = '💾'; btn.title = 'Cambios sin guardar'; }
 }
 
-// ══════════════════════════════════════════════════════════════
-// PDF REAL CON jsPDF
-// ══════════════════════════════════════════════════════════════
+// Auto-save cada 2 minutos
+setInterval(function() {
+  if (driveState.pendingChanges && DRIVE_CONFIG.isSignedIn) saveToDrive(true);
+}, 2 * 60 * 1000);
+
+// ── PDF con jsPDF ─────────────────────────────────────────────
 function loadJsPDF(callback) {
   if (window.jspdf?.jsPDF) { callback(window.jspdf.jsPDF); return; }
   if (window.jsPDF) { callback(window.jsPDF); return; }
-  const script = document.createElement('script');
-  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-  script.onload = () => {
-    const PDF = window.jspdf?.jsPDF || window.jsPDF;
-    if (PDF) callback(PDF);
-    else showToast('Error', 'No se pudo cargar jsPDF', true);
-  };
-  script.onerror = () => showToast('Error de red', 'No se pudo cargar jsPDF', true);
-  document.head.appendChild(script);
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  s.onload = function() { callback(window.jspdf?.jsPDF || window.jsPDF); };
+  s.onerror = function() { showToast('Error', 'No se pudo cargar jsPDF', true); };
+  document.head.appendChild(s);
 }
 
 function descargarPDF(docId) {
-  // Get the preview body element
-  const previewIds = {
-    receta: 'receta-preview-body',
-    certificado: 'certificado-preview-body',
-    orden: 'orden-preview-body',
-    informe: 'informe-preview-body',
-    solicitud: 'solicitud-preview-body',
-  };
-  const bodyId = previewIds[docId] || (docId + '-preview-body');
-  const el = document.getElementById(bodyId);
-  if (!el) {
-    showToast('Sin vista previa', 'Genera el documento primero para poder descargarlo', true);
-    return;
-  }
-  showToast('Generando PDF…', 'Un momento por favor');
-  loadJsPDF(jsPDF => generarPDFDesdeHTML(jsPDF, el, docId));
+  var previewIds = { receta:'receta-preview-body', certificado:'certificado-preview-body',
+    orden:'orden-preview-body', informe:'informe-preview-body', solicitud:'solicitud-preview-body' };
+  var el = document.getElementById(previewIds[docId] || docId+'-preview-body');
+  if (!el) { showToast('Sin vista previa', 'Genera el documento primero', true); return; }
+  showToast('Generando PDF…', 'Un momento');
+  loadJsPDF(function(jsPDF) { generarPDFDesdeHTML(jsPDF, el, docId); });
 }
 
 function generarPDFDesdeHTML(jsPDF, el, docId) {
-  // Get doc config
-  const prefixMap = { receta:'RX', certificado:'CI', orden:'OA', informe:'IM', solicitud:'SA' };
-  const prefix = prefixMap[docId] || 'RX';
-  const cfg = typeof getDocConfig === 'function' ? getDocConfig(prefix) : {};
-  const size = cfg.size || 'letter';
-  const orient = (cfg.orient || 'portrait') === 'landscape' ? 'l' : 'p';
-  const mt = cfg.mt || 2.5;
-  const mb = cfg.mb || 2.5;
-  const ml = cfg.ml || 2.5;
-  const mr = cfg.mr || 2.5;
+  var prefixMap = { receta:'RX', certificado:'CI', orden:'OA', informe:'IM', solicitud:'SA' };
+  var cfg = typeof getDocConfig === 'function' ? getDocConfig(prefixMap[docId]||'RX') : {};
+  var size = cfg.size || 'letter';
+  var orient = (cfg.orient||'portrait') === 'landscape' ? 'l' : 'p';
+  var mt = cfg.mt || 2.5, mb = cfg.mb || 2.5, ml = cfg.ml || 2.5, mr = cfg.mr || 2.5;
+  var pageSizes = { letter:[215.9,279.4], a4:[210,297], legal:[215.9,355.6], a5:[148,210] };
+  var dims = pageSizes[size] || pageSizes.letter;
 
-  const pageSizes = {
-    letter: [215.9, 279.4], a4: [210, 297],
-    legal: [215.9, 355.6], a5: [148, 210],
-  };
-  const [pw, ph] = pageSizes[size] || pageSizes.letter;
+  var doc = new jsPDF({ orientation: orient, unit: 'mm', format: [dims[0], dims[1]] });
+  var p = getPacienteActivo();
+  var nombre = p ? p.nombre.replace(/\s+/g,'_') : 'paciente';
+  var fecha = new Date().toISOString().split('T')[0];
+  var filename = 'MedPro_'+docId+'_'+nombre+'_'+fecha+'.pdf';
 
-  const doc = new jsPDF({
-    orientation: orient,
-    unit: 'mm',
-    format: [pw, ph],
-  });
-
-  // Use html() method if available (jsPDF 2.x)
   if (doc.html) {
-    // Clone element and apply inline styles for PDF rendering
-    const clone = el.cloneNode(true);
-    clone.style.width = (pw - ml - mr) + 'mm';
-    clone.style.fontFamily = 'Helvetica, Arial, sans-serif';
-    clone.style.fontSize = '11px';
+    var clone = el.cloneNode(true);
+    clone.style.cssText = 'width:'+(dims[0]-ml-mr)+'mm;font-family:Helvetica,Arial,sans-serif;font-size:11px;position:absolute;left:-9999px;top:0';
     document.body.appendChild(clone);
-    clone.style.position = 'absolute';
-    clone.style.left = '-9999px';
-    clone.style.top = '0';
-
     doc.html(clone, {
       callback: function(d) {
         document.body.removeChild(clone);
-        const p = getPacienteActivo();
-        const nombre = p ? p.nombre.replace(/\s+/g,'_') : 'paciente';
-        const fecha = new Date().toISOString().split('T')[0];
-        d.save(`MedPro_${docId}_${nombre}_${fecha}.pdf`);
-        showToast('✅ PDF descargado', '');
-        // Also save to Drive if connected
-        if (DRIVE_CONFIG.isSignedIn) {
-          guardarPDFEnDrive(d, docId, nombre, fecha);
-        }
+        d.save(filename);
+        showToast('✅ PDF descargado', filename);
       },
-      x: ml,
-      y: mt,
-      width: pw - ml - mr,
-      windowWidth: Math.round((pw - ml - mr) * 3.78),
+      x: ml, y: mt,
+      width: dims[0] - ml - mr,
+      windowWidth: Math.round((dims[0]-ml-mr)*3.78),
       autoPaging: 'text',
-      margin: [mt, mr, mb, ml],
     });
   } else {
-    // Fallback: text-only PDF
-    generarPDFTexto(doc, el, docId, ml, mt, pw, mr);
-    const p = getPacienteActivo();
-    const nombre = p ? p.nombre.replace(/\s+/g,'_') : 'paciente';
-    doc.save(`MedPro_${docId}_${nombre}_${new Date().toISOString().split('T')[0]}.pdf`);
-    showToast('✅ PDF descargado', '');
+    generarPDFTextoSimple(doc, el, docId, ml, mt, dims[0], mr);
+    doc.save(filename);
+    showToast('✅ PDF descargado', filename);
   }
 }
 
-function generarPDFTexto(doc, el, docId, ml, mt, pw, mr) {
-  // Text-only fallback PDF
-  const p = getPacienteActivo();
-  const cfg = getConfig();
-  const lineH = 7;
-  let y = mt;
-  const maxW = pw - ml - mr;
-  const addLine = (text, size, bold) => {
-    doc.setFontSize(size || 11);
-    doc.setFont('helvetica', bold ? 'bold' : 'normal');
-    const lines = doc.splitTextToSize(text || '', maxW);
-    lines.forEach(line => {
+function generarPDFTextoSimple(doc, el, docId, ml, mt, pw, mr) {
+  var cfg = getConfig ? getConfig() : {};
+  var lineH = 7; var y = mt + 10; var maxW = pw - ml - mr;
+  var addLine = function(text, size) {
+    if (!text) return;
+    doc.setFontSize(size||10);
+    var lines = doc.splitTextToSize(String(text), maxW);
+    lines.forEach(function(l) {
       if (y > 270) { doc.addPage(); y = mt; }
-      doc.text(line, ml, y);
-      y += lineH;
+      doc.text(l, ml, y); y += lineH;
     });
   };
-  const addGap = (n=4) => { y += n; };
-
-  // Header
-  doc.setFillColor(13, 33, 55);
-  doc.rect(0, 0, pw, 22, 'F');
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(12); doc.setFont('helvetica','bold');
-  doc.text(document.getElementById('mb-line1')?.value || cfg.mb_l1 || '', ml, 9);
-  doc.setFontSize(9); doc.setFont('helvetica','normal');
-  doc.text(document.getElementById('mb-line2')?.value || cfg.mb_l2 || '', ml, 14);
-  doc.text(document.getElementById('mb-line4')?.value || cfg.mb_l4 || '', ml, 19);
-  y = 30;
-  doc.setTextColor(0,0,0);
-
-  // Title
-  const titles = {receta:'Receta Médica', certificado:'Certificado', orden:'Orden de Admisión',
-    informe:'Informe Médico', solicitud:'Solicitud a Aseguradora'};
+  var titles = { receta:'Receta Médica', certificado:'Certificado',
+    orden:'Orden de Admisión', informe:'Informe Médico', solicitud:'Solicitud Aseguradora' };
   doc.setFontSize(16); doc.setFont('helvetica','bold');
-  doc.text(titles[docId]||docId, pw/2, y, {align:'center'});
-  y += 10;
-
-  // Patient info
-  if (p) {
-    doc.setFontSize(11); doc.setFont('helvetica','bold');
-    addLine('PACIENTE', 9, true); addGap(1);
-    addLine(p.nombre, 12, true);
-    addLine((p.tipodoc||'Cédula')+': '+(p.doc||'—'), 10);
-    addLine('Seguro: '+(p.seguro||'Particular')+(p.poliza?' · Póliza: '+p.poliza:''), 10);
-    addGap(6);
-  }
-
-  // Extract text content from HTML
-  const textContent = el.innerText || el.textContent || '';
-  const relevantLines = textContent.split('\n').filter(l => l.trim().length > 2).slice(0, 50);
-  doc.setFontSize(10); doc.setFont('helvetica','normal');
-  relevantLines.forEach(line => addLine(line.trim(), 10));
-
-  // Signature area
-  y = Math.max(y + 20, 230);
-  doc.setDrawColor(200,200,200);
-  doc.line(pw - mr - 70, y, pw - mr, y);
-  addGap(4);
-  doc.setFontSize(10); doc.setFont('helvetica','bold');
-  doc.text(document.getElementById('firma-nombre')?.value || cfg.firmaNombre || '', pw - mr - 35, y + 5, {align:'center'});
+  doc.text(titles[docId]||docId, pw/2, mt+8, {align:'center'});
+  y = mt + 20;
   doc.setFont('helvetica','normal');
-  doc.text(document.getElementById('firma-esp')?.value || cfg.firmaEsp || '', pw - mr - 35, y + 10, {align:'center'});
-  doc.text(document.getElementById('firma-reg')?.value || cfg.firmaReg || '', pw - mr - 35, y + 15, {align:'center'});
+  var p = getPacienteActivo();
+  if (p) { addLine('Paciente: '+p.nombre, 12); addLine('Cédula: '+(p.doc||'—'), 10); y += 4; }
+  var text = (el.innerText||el.textContent||'').split('\n').filter(function(l){return l.trim().length>2;}).slice(0,60);
+  text.forEach(function(l) { addLine(l.trim(), 10); });
 }
 
-function guardarPDFEnDrive(doc, docId, nombre, fecha) {
-  try {
-    const pdfBase64 = doc.output('datauristring').split(',')[1];
-    const boundary = '-------pdf_boundary';
-    const meta = JSON.stringify({
-      name: `MedPro_${docId}_${nombre}_${fecha}.pdf`,
-      mimeType: 'application/pdf',
-    });
-    const body = [`--${boundary}`, 'Content-Type: application/json; charset=UTF-8', '', meta,
-      `--${boundary}`, 'Content-Type: application/pdf', 'Content-Transfer-Encoding: base64', '', pdfBase64,
-      `--${boundary}--`].join('\r\n');
-    gapi.client.request({
-      path: '/upload/drive/v3/files?uploadType=multipart',
-      method: 'POST',
-      headers: { 'Content-Type': `multipart/related; boundary="${boundary}"` },
-      body: body,
-    }).then(() => showToast('PDF guardado en Drive', 'MedPro_'+docId+'_'+nombre+'.pdf'));
-  } catch(e) {
-    console.warn('PDF Drive save skipped:', e);
-  }
-}
-
-// ══════════════════════════════════════════════════════════════
-// EXPORTAR XLSX REAL CON SheetJS
-// ══════════════════════════════════════════════════════════════
+// ── Excel con SheetJS ─────────────────────────────────────────
 function exportarReporteXLSX() {
-  showToast('Preparando Excel…', 'Un momento');
-  loadSheetJS(XLSX => generarExcelReporte(XLSX));
+  showToast('Preparando Excel…', '');
+  loadSheetJS(function(XLSX) { generarExcelReporte(XLSX); });
 }
 
 function loadSheetJS(callback) {
   if (window.XLSX) { callback(window.XLSX); return; }
-  const script = document.createElement('script');
-  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-  script.onload = () => callback(window.XLSX);
-  script.onerror = () => showToast('Error de red', 'No se pudo cargar SheetJS', true);
-  document.head.appendChild(script);
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload = function() { callback(window.XLSX); };
+  s.onerror = function() { showToast('Error', 'No se pudo cargar SheetJS', true); };
+  document.head.appendChild(s);
 }
 
 function generarExcelReporte(XLSX) {
-  const { desde, hasta } = getReportePeriodo();
-  const wb = XLSX.utils.book_new();
-
-  // Sheet 1: Pacientes
-  const pacRows = [['ID','Nombre','Documento','Teléfono','Seguro','Póliza','Estado','Episodios','Citas']];
-  App.pacientes.forEach((p, pi) => {
-    const citas = (App.citas||[]).filter(c=>c.pacienteIdx===pi && c.fecha>=desde && c.fecha<=hasta).length;
-    pacRows.push([p.id, p.nombre, p.doc||'', p.tel||'', p.seguro||'Particular',
-      p.poliza||'', p.estado||'Activo', p.episodios?.length||0, citas]);
+  var p = getReportePeriodo();
+  var desde = p.desde, hasta = p.hasta;
+  var wb = XLSX.utils.book_new();
+  var pacRows = [['ID','Nombre','Documento','Teléfono','Seguro','Estado','Episodios']];
+  App.pacientes.forEach(function(pac, pi) {
+    pacRows.push([pac.id,pac.nombre,pac.doc||'',pac.tel||'',pac.seguro||'',pac.estado||'',pac.episodios?.length||0]);
   });
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pacRows), 'Pacientes');
 
-  // Sheet 2: Citas en período
-  const citaRows = [['ID','Paciente','Tipo','Fecha','Hora','Lugar','Estado','Diagnóstico']];
-  (App.citas||[]).filter(c=>c.fecha>=desde&&c.fecha<=hasta).forEach(c => {
-    const p = App.pacientes[c.pacienteIdx];
-    citaRows.push([c.id, p?.nombre||'—', c.tipo, c.fecha, c.hora||'', c.lugar||'',
-      c.estado||'Pendiente', c.diagnostico||'']);
+  var citaRows = [['ID','Paciente','Tipo','Fecha','Hora','Estado']];
+  (App.citas||[]).filter(function(c){return c.fecha>=desde&&c.fecha<=hasta;}).forEach(function(c) {
+    var pac = App.pacientes[c.pacienteIdx];
+    citaRows.push([c.id,pac?.nombre||'—',c.tipo,c.fecha,c.hora||'',c.estado||'']);
   });
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(citaRows), 'Citas');
 
-  // Sheet 3: Protocolos y honorarios
-  const pqRows = [['ID','Paciente','Fecha','Procedimientos','Diagnóstico','Honorarios','Cobrado','Estado pago']];
-  App.pacientes.forEach(p => {
-    (p.episodios||[]).forEach(ep => {
-      (ep.protocolos||[]).forEach(pq => {
-        if (pq.fecha < desde || pq.fecha > hasta) return;
-        pqRows.push([pq.id, p.nombre, pq.fecha,
-          (pq.procedimientos||[]).map(pr=>pr.nombre).join(', '),
-          (pq.diagPre||[]).map(d=>d.nombre).join(', '),
-          parseFloat(pq.honorarios?.monto||0),
-          parseFloat(pq.honorarios?.montoRecibido||0),
-          pq.honorarios?.estado||'—']);
+  var pqRows = [['Paciente','Fecha','Procedimiento','Honorarios','Cobrado','Estado']];
+  App.pacientes.forEach(function(pac) {
+    (pac.episodios||[]).forEach(function(ep) {
+      (ep.protocolos||[]).forEach(function(pq) {
+        if (pq.fecha<desde||pq.fecha>hasta) return;
+        pqRows.push([pac.nombre,pq.fecha,(pq.procedimientos||[]).map(function(pr){return pr.nombre;}).join(', '),
+          parseFloat(pq.honorarios?.monto||0),parseFloat(pq.honorarios?.montoRecibido||0),pq.honorarios?.estado||'']);
       });
     });
   });
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pqRows), 'Protocolos');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pqRows), 'Honorarios');
 
-  // Sheet 4: Pendientes
-  const pendRows = [['Paciente','Episodio','Pendiente','Fecha','Estado']];
-  getAllPendientes(false).forEach(item => {
-    pendRows.push([item.paciente.nombre, item.episodio.id, item.pendiente.texto,
-      item.pendiente.fecha, item.pendiente.realizado?'Realizado':'Activo']);
-  });
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pendRows), 'Pendientes');
-
-  XLSX.writeFile(wb, 'MedPro_Reporte_'+desde+'_'+hasta+'.xlsx');
-  showToast('✅ Excel descargado', 'MedPro_Reporte_'+desde+'_'+hasta+'.xlsx');
+  var filename = 'MedPro_'+desde+'_'+hasta+'.xlsx';
+  XLSX.writeFile(wb, filename);
+  showToast('✅ Excel descargado', filename);
 }
 
-
-function saveDriveConfig() {
-  const clientId = document.getElementById('cfg-drive-client-id')?.value?.trim();
-  if (!clientId) { showToast('Client ID requerido', '', true); return; }
-  App.driveClientId = clientId;
-  DRIVE_CONFIG.clientId = clientId;
-  markDirty();
-  showToast('Conectando…', 'Iniciando autenticación con Google');
-  loadGapiScript();
-}
-
+// ── Backup manual ─────────────────────────────────────────────
 function exportarBackupJSON() {
-  const data = JSON.stringify({
-    version: 7, savedAt: new Date().toISOString(),
-    App: { pacientes: App.pacientes, citas: App.citas, citaSeq: App.citaSeq,
-           equipo: App.equipo, listas: App.listas, secuencias: App.secuencias }
-  }, null, 2);
-  const blob = new Blob([data], { type: 'application/json' });
-  const a = document.createElement('a');
+  var data = JSON.stringify({ version:7, savedAt:new Date().toISOString(),
+    App:{ pacientes:App.pacientes, citas:App.citas, citaSeq:App.citaSeq,
+          equipo:App.equipo, listas:App.listas, secuencias:App.secuencias }}, null, 2);
+  var blob = new Blob([data], {type:'application/json'});
+  var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'MedPro_backup_' + new Date().toISOString().split('T')[0] + '.json';
+  a.download = 'MedPro_backup_'+new Date().toISOString().split('T')[0]+'.json';
   a.click();
   showToast('✅ Backup exportado', a.download);
 }
 
-function importarBackupJSON() {
-  document.getElementById('import-json-input')?.click();
-}
+function importarBackupJSON() { document.getElementById('import-json-input')?.click(); }
 
 function procesarImportJSON(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
     try {
-      const saved = JSON.parse(e.target.result);
+      var saved = JSON.parse(e.target.result);
       if (saved.App) {
         mergeAppData(saved.App);
-        renderPacientesDashboard();
-        renderPacientesPanel();
-        initDashboard();
-        showToast('✅ Datos importados', 'Guardado: ' + (saved.savedAt ? new Date(saved.savedAt).toLocaleString() : ''));
-      } else {
-        showToast('Formato inválido', 'El archivo no es un backup de MedPro', true);
-      }
-    } catch(ex) {
-      showToast('Error al leer', ex.message, true);
-    }
+        renderPacientesDashboard(); renderPacientesPanel(); initDashboard();
+        showToast('✅ Datos importados', '');
+      } else { showToast('Formato inválido', '', true); }
+    } catch(ex) { showToast('Error', ex.message, true); }
   };
   reader.readAsText(file);
   input.value = '';
 }
 
-// Wire markDirty to key save operations
-const _origSaveNuevoPacienteFn = typeof saveNuevoPaciente === 'function' ? saveNuevoPaciente : null;
-const _origSaveNuevaCitaFn = typeof saveNuevaCita === 'function' ? saveNuevaCita : null;
-
-// Auto-init Drive if clientId saved
-document.addEventListener('DOMContentLoaded', () => {
-  // Always start with correct status
+// ── Auto-init ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
   updateDriveStatusUI('no-config');
-
   if (App.driveClientId) {
-    const cfgInput = document.getElementById('cfg-drive-client-id');
+    var cfgInput = document.getElementById('cfg-drive-client-id');
     if (cfgInput) cfgInput.value = App.driveClientId;
-    // Auto-connect if clientId is saved
-    setTimeout(loadGapiScript, 1500);
+    setTimeout(function() {
+      loadDriveLibraries(function() { initDriveClient(App.driveClientId); });
+    }, 1500);
   }
-  // Save on page unload
-  window.addEventListener('beforeunload', () => {
-    if (driveState.pendingChanges && DRIVE_CONFIG.isSignedIn) {
-      saveToDrive(true);
-    }
+  window.addEventListener('beforeunload', function() {
+    if (driveState.pendingChanges && DRIVE_CONFIG.isSignedIn) saveToDrive(true);
   });
 });
 
