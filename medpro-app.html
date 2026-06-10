@@ -1240,9 +1240,57 @@ input[type="color"] {
   }
   .nc-dropdown-new:hover { background: var(--teal-lt); }
 
+
+  .pin-input{width:50px;height:54px;text-align:center;font-size:22px;font-weight:700;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:10px;color:white;outline:none;}
+  .pin-input:focus{border-color:#00A896;background:rgba(0,168,150,0.1);}
 </style>
 </head>
 <body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0D2137 0%,#1A3A52 60%,#0D2137 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:20px">
+  <div style="text-align:center">
+    <div style="width:72px;height:72px;background:rgba(0,168,150,0.2);border:2px solid #00A896;border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#00A896" stroke-width="2" stroke-linecap="round" width="40" height="40"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+    </div>
+    <div style="font-family:'Instrument Serif',serif;font-size:30px;color:white">MedPro</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px">Dr. Leonardo Pirro Estévez · Hospital Pacífica Salud</div>
+  </div>
+
+  <div id="login-file-section" style="width:100%;max-width:340px;background:rgba(255,255,255,0.07);border-radius:14px;padding:20px;border:1px solid rgba(255,255,255,0.1)">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:24px;margin-bottom:6px">📁</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.6)" id="login-file-name">Sin archivo de datos</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:3px" id="login-file-hint">Selecciona o crea tu archivo para comenzar</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button id="btn-login-biometric" onclick="loginConHuella()" style="display:none;width:100%;padding:14px;background:#00A896;border:none;border-radius:10px;color:white;font-size:15px;font-weight:600;cursor:pointer;align-items:center;justify-content:center;gap:8px">
+        <span style="font-size:20px">👆</span> Entrar con huella
+      </button>
+      <button id="btn-login-pin" onclick="loginConPIN()" style="display:none;width:100%;padding:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:14px;cursor:pointer">
+        🔢 Entrar con PIN
+      </button>
+      <button onclick="fsaSeleccionarArchivoLogin()" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:rgba(255,255,255,0.7);font-size:13px;cursor:pointer">
+        📂 Abrir archivo existente
+      </button>
+      <button onclick="fsaCrearArchivoLogin()" style="width:100%;padding:11px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:rgba(255,255,255,0.4);font-size:13px;cursor:pointer">
+        📄 Crear archivo nuevo
+      </button>
+    </div>
+  </div>
+
+  <div id="login-pin-section" style="display:none;width:100%;max-width:340px">
+    <div style="text-align:center;color:rgba(255,255,255,0.7);margin-bottom:14px;font-size:14px">Ingresa tu PIN</div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:14px">
+      <input type="password" inputmode="numeric" maxlength="1" class="pin-input" id="pin-0" oninput="pinNext(0)">
+      <input type="password" inputmode="numeric" maxlength="1" class="pin-input" id="pin-1" oninput="pinNext(1)">
+      <input type="password" inputmode="numeric" maxlength="1" class="pin-input" id="pin-2" oninput="pinNext(2)">
+      <input type="password" inputmode="numeric" maxlength="1" class="pin-input" id="pin-3" oninput="pinNext(3)">
+    </div>
+    <button onclick="verificarPIN()" style="width:100%;padding:12px;background:#00A896;border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer">Entrar</button>
+    <button onclick="cancelarPIN()" style="width:100%;padding:9px;background:none;border:none;color:rgba(255,255,255,0.35);font-size:12px;cursor:pointer;margin-top:6px">Cancelar</button>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════
      SIDEBAR
@@ -1322,7 +1370,7 @@ input[type="color"] {
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-title" id="topbar-title">Dashboard</div>
-    <button id="topbar-sync-btn" onclick="saveToDrive(false)" title="Sincronizar con Drive" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 8px;border-radius:6px;color:var(--text-lt);transition:all 0.2s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='none'">☁️</button>
+    <button id="topbar-save-btn" onclick="if(typeof autoGuardar==='function')autoGuardar();showToast('✅ Guardado','')" title="Guardar datos" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 8px;border-radius:6px;color:var(--text-lt)">💾</button>
     <div class="topbar-search">
       <span class="search-icon">🔍</span>
       <input class="search-input" type="text" placeholder="Buscar pacientes, documentos…">
@@ -3065,10 +3113,10 @@ Gracias. Dr. [medico] — [contacto].</textarea>
             <button class="btn btn-primary" id="btn-drive-signin" onclick="signInGoogle()">
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:18px;height:18px;margin-right:6px"> Iniciar sesión con Google
             </button>
-            <button class="btn btn-ghost" id="btn-drive-signout" style="display:none!important" onclick="signOutGoogle()">
+            <button class="btn btn-ghost" id="btn-drive-signout" style="display:none" onclick="signOutGoogle()">
               Cerrar sesión de Google
             </button>
-            <button class="btn btn-ghost" id="btn-drive-sync" style="display:none!important" onclick="saveToDrive(false)">
+            <button class="btn btn-ghost" id="btn-drive-sync" style="display:none" onclick="saveToDrive(false)">
               🔄 Sincronizar ahora
             </button>
             <button class="btn btn-ghost" id="btn-drive-load" onclick="loadFromDrive()">
@@ -4569,11 +4617,11 @@ function saveNuevoPaciente() {
   document.getElementById('np-tel').value = '';
   document.getElementById('np-seguro').value = '';
 
-  initTestData();
   renderPacientesDashboard();
   renderPacientesPanel();
   closeModal('modal-nuevo-paciente');
   showToast('Paciente registrado', nombre);
+  if(typeof autoGuardar==='function')autoGuardar();
   // If modal-nueva-cita is open, fill patient field
   const postAction = window._npPostAction || '';
   window._npPostAction = '';
@@ -4688,10 +4736,11 @@ document.addEventListener('DOMContentLoaded', () => {
   renderEquipo();
 
   // Render initial patients
-  initTestData();
-  renderPacientesDashboard();
-  renderPacientesPanel();
-  initDashboard();
+  // Load saved local data first
+  var _hadLocal = cargarLocal ? cargarLocal() : false;
+  if (!_hadLocal) initTestData();
+  // Don't render yet — wait for login screen auth
+  initAuth();
 });
 
 // Escape closes modals
@@ -5299,7 +5348,6 @@ function saveEditarPaciente() {
 
   closeModal('modal-editar-paciente');
   abrirExpediente(App.pacienteActivoIdx);
-  initTestData();
   renderPacientesDashboard();
   renderPacientesPanel();
   showToast('Paciente actualizado', nombre);
@@ -5893,6 +5941,7 @@ function saveHC(epId) {
   }
 
   renderEpisodioContent();
+  if(typeof autoGuardar==='function')autoGuardar();
   showToast('✓ Historia Clínica guardada', ep.id);
 }
 
@@ -6054,6 +6103,7 @@ function saveEvolucion(epId) {
     const tabs = document.querySelectorAll('.ep-tab');
     if (tabs[1]) setEpTab(tabs[1], 'ep-evolucion');
   }, 50);
+  if(typeof autoGuardar==='function')autoGuardar();
   showToast('✓ Evolución guardada', 'EV-' + evNum);
 }
 
@@ -6463,6 +6513,7 @@ function saveProtocolo(epId) {
     const tabs = document.querySelectorAll('.ep-tab');
     if (tabs[2]) setEpTab(tabs[2], 'ep-protocolo');
   }, 50);
+  if(typeof autoGuardar==='function')autoGuardar();
   showToast('✓ Protocolo guardado', 'PQ-' + pqNum);
 }
 
@@ -6902,6 +6953,9 @@ function imprimirDocumento(docId) {
   }
   .nc-dropdown-new:hover { background: var(--teal-lt); }
 
+
+  .pin-input{width:50px;height:54px;text-align:center;font-size:22px;font-weight:700;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:10px;color:white;outline:none;}
+  .pin-input:focus{border-color:#00A896;background:rgba(0,168,150,0.1);}
 </style>
     </head><body>${el.innerHTML}<script>window.onload=()=>window.print();<\/script></body></html>`);
   win.document.close();
@@ -10630,22 +10684,6 @@ function renderReportes() {
     </div>`;
 }
 
-function renderBarChart(data, color) {
-  const entries = Object.entries(data);
-  const max = Math.max(...entries.map(e => e[1]), 1);
-  const barH = 120;
-  const barW = Math.max(32, Math.floor(480 / Math.max(entries.length, 1)) - 8);
-  return `<div style="display:flex;align-items:flex-end;gap:6px;height:${barH+44}px;overflow-x:auto;padding-bottom:4px">
-    ${entries.map(([label, val]) => `
-      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
-        <div style="font-size:12px;font-weight:700;color:var(--text)">${val}</div>
-        <div style="width:${barW}px;background:${color};border-radius:4px 4px 0 0;height:${Math.max(4,Math.round(val/max*barH))}px"></div>
-        <div style="font-size:10px;color:var(--text-lt);text-align:center;width:${barW+8}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${label}">${label}</div>
-      </div>`).join('')}
-  </div>`;
-}
-
-
 function renderHorizBarsConPct(data, total) {
   const entries = Object.entries(data).sort((a,b)=>b[1]-a[1]);
   const max = Math.max(...entries.map(e=>e[1]),1);
@@ -10852,7 +10890,10 @@ function imprimirReporte() {
       th { background: #F7F9FB; font-weight: 600; font-size: 11px; text-transform: uppercase; }
       h2 { color: #0D2137; margin: 16px 0 8px; }
       @media print { @page { margin: 1cm; } }
-    </style>
+    
+  .pin-input{width:50px;height:54px;text-align:center;font-size:22px;font-weight:700;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:10px;color:white;outline:none;}
+  .pin-input:focus{border-color:#00A896;background:rgba(0,168,150,0.1);}
+</style>
     </head><body>
     <h2>Reporte Clínico — MedPro</h2>
     ${content.innerHTML}
@@ -11073,7 +11114,10 @@ function ejecutarImpresion() {
       @page { size: ${sizeCSS} ${orient}; margin: ${mt}cm ${mr}cm ${mb}cm ${ml}cm; }
       body { font-family: 'Instrument Sans', sans-serif; margin: 0; padding: 0; }
       * { box-sizing: border-box; }
-    </style>
+    
+  .pin-input{width:50px;height:54px;text-align:center;font-size:22px;font-weight:700;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);border-radius:10px;color:white;outline:none;}
+  .pin-input:focus{border-color:#00A896;background:rgba(0,168,150,0.1);}
+</style>
     </head><body>${content.innerHTML}<script>window.onload=()=>window.print();<\/script></body></html>`);
   win.document.close();
 }
@@ -11174,7 +11218,7 @@ function seleccionarPacienteDocRapido(pi, tipo) {
 }
 
 
-// ══ FASE 7 — GOOGLE DRIVE + PDF (GIS) ══
+// ══ FASE 7 + AUTH ══
 // ══════════════════════════════════════════════════════════════
 // FASE 7 — GOOGLE DRIVE + PDF (usando Google Identity Services)
 // ══════════════════════════════════════════════════════════════
@@ -11243,7 +11287,7 @@ function initDriveClient(clientId) {
       scope: DRIVE_CONFIG.scope,
       callback: function(tokenResponse) {
         if (tokenResponse.error) {
-          showToast('Error de autenticación', tokenResponse.error_description || tokenResponse.error, true);
+          showToast('Error de autenticación', tokenResponse.error, true);
           updateDriveStatusUI('signed-out');
           return;
         }
@@ -11255,14 +11299,11 @@ function initDriveClient(clientId) {
         loadFromDrive();
       },
     });
-    // Ready to sign in - show button
     updateDriveStatusUI('signed-out');
-    showToast('Listo', 'Toca "Iniciar sesión con Google" para conectar');
   }).catch(function(err) {
     console.error('Drive init error:', err);
     updateDriveStatusUI('error');
-    var msg = err.message || JSON.stringify(err);
-    showToast('Error de configuración', msg.substring(0,80), true);
+    showToast('Error', 'Verifica el Client ID y los orígenes autorizados', true);
   });
 }
 
@@ -11277,14 +11318,7 @@ function signInGoogle() {
     loadDriveLibraries(function() { initDriveClient(clientId); setTimeout(signInGoogle, 500); });
     return;
   }
-  // On mobile, use empty prompt to avoid popup issues
-  var prompt = DRIVE_CONFIG.accessToken ? '' : 'consent';
-  try {
-    DRIVE_CONFIG.tokenClient.requestAccessToken({ prompt: prompt });
-  } catch(e) {
-    showToast('Error', 'No se pudo abrir la ventana de Google. Verifica que no esté bloqueada.', true);
-    console.error('Token request error:', e);
-  }
+  DRIVE_CONFIG.tokenClient.requestAccessToken({ prompt: 'consent' });
 }
 
 function signOutGoogle() {
@@ -11319,8 +11353,8 @@ function updateDriveStatusUI(status) {
   var topbarSync = document.getElementById('topbar-sync-btn');
 
   var states = {
-    'no-config':  { icon:'⭕',  text:'Sin configurar',   color:'var(--text-lt)', btnIn:false, btnOut:false, btnSync:false },
-    'signed-out': { icon:'🔓',  text:'No conectado',     color:'var(--text-lt)', btnIn:true,  btnOut:false, btnSync:false },
+    'no-config':  { icon:'☁️',  text:'Sin configurar',   color:'var(--text-lt)', btnIn:false, btnOut:false, btnSync:false },
+    'signed-out': { icon:'🔒',  text:'No conectado',     color:'var(--text-lt)', btnIn:true,  btnOut:false, btnSync:false },
     'signed-in':  { icon:'✅',  text:'Conectado',         color:'var(--teal)',    btnIn:false, btnOut:true,  btnSync:true  },
     'syncing':    { icon:'🔄',  text:'Sincronizando…',   color:'var(--blue)',    btnIn:false, btnOut:false, btnSync:false },
     'synced':     { icon:'☁️',  text:'Sincronizado',      color:'var(--teal)',    btnIn:false, btnOut:true,  btnSync:true  },
@@ -11635,21 +11669,1483 @@ function procesarImportJSON(input) {
 
 // ── Auto-init ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
-  // Always start as not configured until proven otherwise
-  setTimeout(function() { updateDriveStatusUI('no-config'); }, 100);
-  
+  updateDriveStatusUI('no-config');
   if (App.driveClientId) {
     var cfgInput = document.getElementById('cfg-drive-client-id');
     if (cfgInput) cfgInput.value = App.driveClientId;
-    // Load libraries but don't auto-sign-in - user must tap the button
     setTimeout(function() {
       loadDriveLibraries(function() { initDriveClient(App.driveClientId); });
-    }, 2000);
+    }, 1500);
   }
   window.addEventListener('beforeunload', function() {
     if (driveState.pendingChanges && DRIVE_CONFIG.isSignedIn) saveToDrive(true);
   });
 });
+// ══════════════════════════════════════════════════════════════
+// AUTENTICACIÓN — Huella digital + PIN + Archivo local
+// ══════════════════════════════════════════════════════════════
+
+var AUTH = {
+  isAuthenticated: false,
+  hasBiometric: false,
+  credentialId: null,
+  pinHash: null,
+  fileHandle: null,
+  fileReady: false,
+};
+
+var AUTH_STORAGE_KEY = 'medpro_auth_v1';
+
+// ── Inicializar ───────────────────────────────────────────────
+function initAuth() {
+  // Load saved auth config
+  try {
+    var saved = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||'{}');
+    AUTH.pinHash = saved.pinHash || null;
+    AUTH.hasBiometric = saved.hasBiometric || false;
+    AUTH.credentialId = saved.credentialId || null;
+  } catch(e) {}
+
+  // Check if we have a remembered file handle
+  var fileHint = localStorage.getItem('medpro_fsa_name');
+  updateLoginUI(fileHint);
+}
+
+function updateLoginUI(fileName) {
+  var nameEl = document.getElementById('login-file-name');
+  var hintEl = document.getElementById('login-file-hint');
+  var bioBtn = document.getElementById('btn-login-biometric');
+  var pinBtn = document.getElementById('btn-login-pin');
+
+  if (AUTH.fileReady || fileName) {
+    if (nameEl) nameEl.textContent = fileName || FSA.fileHandle?.name || 'Archivo listo';
+    if (hintEl) hintEl.textContent = AUTH.hasBiometric || AUTH.pinHash
+      ? 'Autenticación requerida para continuar'
+      : 'Toca para entrar';
+    if (bioBtn) bioBtn.style.display = AUTH.hasBiometric ? 'flex' : 'none';
+    if (pinBtn) pinBtn.style.display = AUTH.pinHash ? 'flex' : 'none';
+    // If no auth configured, show direct enter button
+    if (!AUTH.hasBiometric && !AUTH.pinHash) {
+      if (bioBtn) { bioBtn.style.display = 'flex'; bioBtn.innerHTML = '<span style="font-size:22px">▶️</span> Entrar'; }
+    }
+  } else {
+    if (nameEl) nameEl.textContent = 'Sin archivo de datos';
+    if (hintEl) hintEl.textContent = 'Crea o selecciona tu archivo para comenzar';
+    if (bioBtn) bioBtn.style.display = 'none';
+    if (pinBtn) pinBtn.style.display = 'none';
+  }
+}
+
+// ── Abrir archivo desde pantalla de login ────────────────────
+async function fsaSeleccionarArchivoLogin() {
+  if (!('showOpenFilePicker' in window)) {
+    // Fallback: use file input
+    var input = document.createElement('input');
+    input.type = 'file'; input.accept = '.json';
+    input.onchange = async function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      try {
+        var text = await file.text();
+        var data = JSON.parse(text);
+        if (data.pacientes !== undefined || data.App) {
+          var appData = data.App || data;
+          if (appData.pacientes?.length) App.pacientes = appData.pacientes;
+          if (appData.citas?.length) App.citas = appData.citas;
+          if (appData.citaSeq) App.citaSeq = appData.citaSeq;
+          if (appData.equipo) App.equipo = appData.equipo;
+          if (appData.listas) App.listas = appData.listas;
+          if (appData.secuencias) App.secuencias = appData.secuencias;
+          AUTH.fileReady = true;
+          localStorage.setItem('medpro_fsa_name', file.name);
+          updateLoginUI(file.name);
+          // If no auth configured, enter directly
+          if (!AUTH.hasBiometric && !AUTH.pinHash) entrarAlApp();
+        }
+      } catch(ex) { showToast('Error', 'Archivo inválido', true); }
+    };
+    input.click();
+    return;
+  }
+
+  try {
+    var handles = await window.showOpenFilePicker({
+      types: [{ description: 'MedPro Data', accept: { 'application/json': ['.json'] } }],
+    });
+    FSA.fileHandle = handles[0];
+    AUTH.fileReady = true;
+    await fsaCargarDesdeArchivo();
+    localStorage.setItem('medpro_fsa_name', FSA.fileHandle.name);
+    updateLoginUI(FSA.fileHandle.name);
+    if (!AUTH.hasBiometric && !AUTH.pinHash) entrarAlApp();
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('Error', e.message, true);
+  }
+}
+
+async function fsaCrearArchivoLogin() {
+  if (!('showSaveFilePicker' in window)) {
+    // Fallback: just enter with localStorage
+    AUTH.fileReady = true;
+    updateLoginUI('Almacenamiento local');
+    entrarAlApp();
+    return;
+  }
+
+  try {
+    FSA.fileHandle = await window.showSaveFilePicker({
+      suggestedName: 'medpro-datos.json',
+      types: [{ description: 'MedPro Data', accept: { 'application/json': ['.json'] } }],
+    });
+    AUTH.fileReady = true;
+    await fsaGuardarEnArchivo(true);
+    localStorage.setItem('medpro_fsa_name', FSA.fileHandle.name);
+    updateLoginUI(FSA.fileHandle.name);
+    if (!AUTH.hasBiometric && !AUTH.pinHash) {
+      // First time setup — ask if want to set up PIN
+      mostrarSetupAuth();
+    } else {
+      entrarAlApp();
+    }
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('Error', e.message, true);
+  }
+}
+
+// ── Pantalla de configuración de autenticación ───────────────
+function mostrarSetupAuth() {
+  var loginFile = document.getElementById('login-file-section');
+  if (loginFile) loginFile.innerHTML = `
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:24px;margin-bottom:8px">🔐</div>
+      <div style="font-size:15px;font-weight:600;color:white;margin-bottom:6px">Configurar acceso</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.6)">¿Deseas proteger el app con PIN?</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button onclick="iniciarConfigPIN()" style="width:100%;padding:14px;background:#00A896;border:none;border-radius:10px;color:white;font-size:15px;font-weight:600;cursor:pointer">
+        🔢 Configurar PIN
+      </button>
+      <button onclick="entrarAlApp()" style="width:100%;padding:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:rgba(255,255,255,0.7);font-size:14px;cursor:pointer">
+        Entrar sin PIN por ahora
+      </button>
+    </div>`;
+}
+
+// ── Configurar PIN ───────────────────────────────────────────
+var _pinSetupMode = false;
+var _pinFirst = '';
+
+function iniciarConfigPIN() {
+  _pinSetupMode = true;
+  _pinFirst = '';
+  var loginFile = document.getElementById('login-file-section');
+  if (loginFile) loginFile.innerHTML = `
+    <div style="text-align:center;margin-bottom:12px;color:rgba(255,255,255,0.8);font-size:14px">
+      Crea un PIN de 4 dígitos
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:16px">
+      <input type="number" maxlength="1" class="pin-input" id="pin-0" oninput="pinNext(0)">
+      <input type="number" maxlength="1" class="pin-input" id="pin-1" oninput="pinNext(1)">
+      <input type="number" maxlength="1" class="pin-input" id="pin-2" oninput="pinNext(2)">
+      <input type="number" maxlength="1" class="pin-input" id="pin-3" oninput="pinNext(3)">
+    </div>
+    <button onclick="confirmarNuevoPIN()" style="width:100%;padding:12px;background:#00A896;border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer">
+      Continuar
+    </button>`;
+  setTimeout(() => document.getElementById('pin-0')?.focus(), 100);
+}
+
+function pinNext(idx) {
+  var el = document.getElementById('pin-'+idx);
+  if (!el) return;
+  var val = el.value.replace(/\D/g,'');
+  el.value = val.slice(-1);
+  if (val && idx < 3) {
+    setTimeout(() => document.getElementById('pin-'+(idx+1))?.focus(), 50);
+  }
+}
+
+function getPINValue() {
+  return [0,1,2,3].map(i => document.getElementById('pin-'+i)?.value||'').join('');
+}
+
+async function hashPIN(pin) {
+  var buf = new TextEncoder().encode(pin + 'medpro_salt_2024');
+  var hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function confirmarNuevoPIN() {
+  var pin = getPINValue();
+  if (pin.length < 4) { showToast('PIN incompleto', 'Ingresa 4 dígitos', true); return; }
+  if (!_pinFirst) {
+    _pinFirst = pin;
+    // Ask to confirm
+    [0,1,2,3].forEach(i => { var el = document.getElementById('pin-'+i); if(el) el.value=''; });
+    var hint = document.querySelector('#login-file-section [style*="Crea un PIN"]');
+    if (hint) hint.textContent = 'Confirma tu PIN';
+    document.getElementById('pin-0')?.focus();
+  } else {
+    if (pin !== _pinFirst) {
+      showToast('PIN no coincide', 'Los PINs deben ser iguales', true);
+      [0,1,2,3].forEach(i => { var el = document.getElementById('pin-'+i); if(el) el.value=''; });
+      _pinFirst = '';
+      return;
+    }
+    AUTH.pinHash = await hashPIN(pin);
+    var authData = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||'{}');
+    authData.pinHash = AUTH.pinHash;
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+    showToast('✅ PIN configurado', '');
+    entrarAlApp();
+  }
+}
+
+// ── Login con huella ─────────────────────────────────────────
+async function loginConHuella() {
+  if (!AUTH.hasBiometric) {
+    // Try to use WebAuthn
+    if (!window.PublicKeyCredential) {
+      showToast('No disponible', 'Este dispositivo no soporta huella digital en el navegador', true);
+      return;
+    }
+    // Check if biometric available
+    var available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    if (!available) {
+      showToast('Sin huella', 'No se detectó sensor de huella en este dispositivo', true);
+      return;
+    }
+    // Register biometric
+    await registrarHuella();
+  } else {
+    await verificarHuella();
+  }
+}
+
+async function registrarHuella() {
+  try {
+    var cred = await navigator.credentials.create({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        rp: { name: 'MedPro', id: location.hostname || 'localhost' },
+        user: { id: new Uint8Array([1]), name: 'medpro_user', displayName: 'Dr. Pirro' },
+        pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',
+          userVerification: 'required',
+        },
+        timeout: 60000,
+      }
+    });
+    AUTH.credentialId = Array.from(new Uint8Array(cred.rawId)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    AUTH.hasBiometric = true;
+    var authData = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||'{}');
+    authData.hasBiometric = true;
+    authData.credentialId = AUTH.credentialId;
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+    entrarAlApp();
+  } catch(e) {
+    if (e.name !== 'NotAllowedError') showToast('Error', e.message, true);
+  }
+}
+
+async function verificarHuella() {
+  try {
+    await navigator.credentials.get({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        userVerification: 'required',
+        timeout: 60000,
+      }
+    });
+    entrarAlApp();
+  } catch(e) {
+    if (e.name !== 'NotAllowedError') showToast('Error de autenticación', e.message, true);
+  }
+}
+
+// ── Login con PIN ────────────────────────────────────────────
+function loginConPIN() {
+  var pinSection = document.getElementById('login-pin-section');
+  var fileSection = document.getElementById('login-file-section');
+  if (pinSection) pinSection.style.display = 'block';
+  if (fileSection) fileSection.style.display = 'none';
+  [0,1,2,3].forEach(i => { var el = document.getElementById('pin-'+i); if(el) el.value=''; });
+  setTimeout(() => document.getElementById('pin-0')?.focus(), 100);
+}
+
+function cancelarPIN() {
+  var pinSection = document.getElementById('login-pin-section');
+  var fileSection = document.getElementById('login-file-section');
+  if (pinSection) pinSection.style.display = 'none';
+  if (fileSection) fileSection.style.display = 'block';
+}
+
+async function verificarPIN() {
+  var pin = getPINValue();
+  if (pin.length < 4) { showToast('PIN incompleto', '', true); return; }
+  var hash = await hashPIN(pin);
+  if (hash === AUTH.pinHash) {
+    entrarAlApp();
+  } else {
+    showToast('PIN incorrecto', 'Intenta nuevamente', true);
+    [0,1,2,3].forEach(i => { var el = document.getElementById('pin-'+i); if(el) el.value=''; });
+    document.getElementById('pin-0')?.focus();
+  }
+}
+
+// ── Entrar al app ─────────────────────────────────────────────
+function entrarAlApp() {
+  AUTH.isAuthenticated = true;
+  var loginScreen = document.getElementById('login-screen');
+  if (loginScreen) {
+    loginScreen.style.opacity = '0';
+    loginScreen.style.transition = 'opacity 0.3s';
+    setTimeout(() => { loginScreen.style.display = 'none'; }, 300);
+  }
+  // Refresh UI with loaded data
+  renderPacientesDashboard();
+  renderPacientesPanel();
+  initDashboard();
+  fsaUpdateUI();
+}
+
+// ── Cerrar sesión ─────────────────────────────────────────────
+async function cerrarSesion() {
+  // Save first
+  if (FSA.fileHandle) {
+    await fsaGuardarEnArchivo(false);
+  } else {
+    guardarLocal();
+    showToast('✅ Datos guardados', '');
+  }
+  AUTH.isAuthenticated = false;
+  // Show login screen
+  var loginScreen = document.getElementById('login-screen');
+  if (loginScreen) {
+    loginScreen.style.display = 'flex';
+    loginScreen.style.opacity = '1';
+  }
+  updateLoginUI(localStorage.getItem('medpro_fsa_name'));
+}
+
+// ── Inicializar en DOMContentLoaded ─────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  initAuth();
+  // Check if biometric button should show
+  var bioBtn = document.getElementById('btn-login-biometric');
+  var pinBtn = document.getElementById('btn-login-pin');
+  if (bioBtn) bioBtn.style.display = AUTH.hasBiometric ? 'flex' : 'none';
+  if (pinBtn) pinBtn.style.display = AUTH.pinHash ? 'flex' : 'none';
+  // If neither, show as "Entrar directo" if file ready
+  if (!AUTH.hasBiometric && !AUTH.pinHash) {
+    if (bioBtn) {
+      bioBtn.style.display = 'flex';
+      bioBtn.onclick = function() {
+        if (AUTH.fileReady || FSA.fileHandle) entrarAlApp();
+        else showToast('Selecciona un archivo primero', '', true);
+      };
+      bioBtn.innerHTML = '<span style="font-size:22px">▶️</span> Entrar al app';
+    }
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+// GUARDADO EN CADA ACCIÓN IMPORTANTE
+// ══════════════════════════════════════════════════════════════
+function autoGuardar() {
+  if (!AUTH.isAuthenticated) return;
+  if (FSA.fileHandle) {
+    fsaGuardarEnArchivo(true);
+  } else {
+    guardarLocal();
+  }
+}
+
+
+// ══ FASE 7 + AUTH ══
+// ══════════════════════════════════════════════════════════════
+// FASE 7 — GOOGLE DRIVE + PDF (usando Google Identity Services)
+// ══════════════════════════════════════════════════════════════
+
+var DRIVE_CONFIG = {
+  clientId: '',
+  scope: 'https://www.googleapis.com/auth/drive.file',
+  fileName: 'medpro-data.json',
+  fileId: null,
+  isSignedIn: false,
+  tokenClient: null,
+  accessToken: null,
+};
+
+var driveState = {
+  lastSync: null,
+  pendingChanges: false,
+  syncInProgress: false,
+};
+
+// ── Cargar librerías ──────────────────────────────────────────
+function loadDriveLibraries(callback) {
+  var loaded = 0;
+  var needed = 2;
+  var done = function() { loaded++; if (loaded >= needed && callback) callback(); };
+
+  // Google Identity Services
+  if (!window.google?.accounts) {
+    var s1 = document.createElement('script');
+    s1.src = 'https://accounts.google.com/gsi/client';
+    s1.onload = done;
+    s1.onerror = function() {
+      showToast('Error de red', 'No se pudo cargar Google Identity Services', true);
+      updateDriveStatusUI('error');
+    };
+    document.head.appendChild(s1);
+  } else { done(); }
+
+  // Google API client
+  if (!window.gapi) {
+    var s2 = document.createElement('script');
+    s2.src = 'https://apis.google.com/js/api.js';
+    s2.onload = function() {
+      gapi.load('client', done);
+    };
+    s2.onerror = function() {
+      showToast('Error de red', 'No se pudo cargar Google API', true);
+      updateDriveStatusUI('error');
+    };
+    document.head.appendChild(s2);
+  } else if (window.gapi && !window.gapi.client) {
+    gapi.load('client', done);
+  } else { done(); }
+}
+
+function initDriveClient(clientId) {
+  DRIVE_CONFIG.clientId = clientId;
+
+  // Initialize gapi client
+  gapi.client.init({}).then(function() {
+    return gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
+  }).then(function() {
+    // Initialize token client (GIS)
+    DRIVE_CONFIG.tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: DRIVE_CONFIG.scope,
+      callback: function(tokenResponse) {
+        if (tokenResponse.error) {
+          showToast('Error de autenticación', tokenResponse.error, true);
+          updateDriveStatusUI('signed-out');
+          return;
+        }
+        DRIVE_CONFIG.accessToken = tokenResponse.access_token;
+        DRIVE_CONFIG.isSignedIn = true;
+        gapi.client.setToken({ access_token: tokenResponse.access_token });
+        updateDriveStatusUI('signed-in');
+        showToast('✅ Conectado a Google Drive', '');
+        loadFromDrive();
+      },
+    });
+    updateDriveStatusUI('signed-out');
+  }).catch(function(err) {
+    console.error('Drive init error:', err);
+    updateDriveStatusUI('error');
+    showToast('Error', 'Verifica el Client ID y los orígenes autorizados', true);
+  });
+}
+
+function signInGoogle() {
+  var clientId = document.getElementById('cfg-drive-client-id')?.value?.trim() || App.driveClientId;
+  if (!clientId) {
+    showToast('Client ID requerido', 'Ingresa el Client ID primero', true);
+    return;
+  }
+  if (!DRIVE_CONFIG.tokenClient) {
+    updateDriveStatusUI('syncing');
+    loadDriveLibraries(function() { initDriveClient(clientId); setTimeout(signInGoogle, 500); });
+    return;
+  }
+  DRIVE_CONFIG.tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+function signOutGoogle() {
+  if (DRIVE_CONFIG.accessToken) {
+    google.accounts.oauth2.revoke(DRIVE_CONFIG.accessToken, function() {
+      DRIVE_CONFIG.accessToken = null;
+      DRIVE_CONFIG.isSignedIn = false;
+      gapi.client.setToken(null);
+      updateDriveStatusUI('signed-out');
+      showToast('Sesión cerrada', 'Desconectado de Google Drive');
+    });
+  }
+}
+
+function saveDriveConfig() {
+  var clientId = document.getElementById('cfg-drive-client-id')?.value?.trim();
+  if (!clientId) { showToast('Client ID requerido', '', true); return; }
+  App.driveClientId = clientId;
+  DRIVE_CONFIG.clientId = clientId;
+  markDirty();
+  showToast('Conectando…', 'Cargando librerías de Google');
+  updateDriveStatusUI('syncing');
+  loadDriveLibraries(function() { initDriveClient(clientId); });
+}
+
+// ── UI Status ─────────────────────────────────────────────────
+function updateDriveStatusUI(status) {
+  var statusEl = document.getElementById('drive-status');
+  var btnSignIn = document.getElementById('btn-drive-signin');
+  var btnSignOut = document.getElementById('btn-drive-signout');
+  var btnSync = document.getElementById('btn-drive-sync');
+  var topbarSync = document.getElementById('topbar-sync-btn');
+
+  var states = {
+    'no-config':  { icon:'☁️',  text:'Sin configurar',   color:'var(--text-lt)', btnIn:false, btnOut:false, btnSync:false },
+    'signed-out': { icon:'🔒',  text:'No conectado',     color:'var(--text-lt)', btnIn:true,  btnOut:false, btnSync:false },
+    'signed-in':  { icon:'✅',  text:'Conectado',         color:'var(--teal)',    btnIn:false, btnOut:true,  btnSync:true  },
+    'syncing':    { icon:'🔄',  text:'Sincronizando…',   color:'var(--blue)',    btnIn:false, btnOut:false, btnSync:false },
+    'synced':     { icon:'☁️',  text:'Sincronizado',      color:'var(--teal)',    btnIn:false, btnOut:true,  btnSync:true  },
+    'error':      { icon:'⚠️',  text:'Error de conexión', color:'var(--red)',     btnIn:true,  btnOut:false, btnSync:false },
+  };
+
+  var s = states[status] || states['no-config'];
+  if (statusEl) statusEl.innerHTML = '<span style="color:'+s.color+'">'+s.icon+' '+s.text+'</span>';
+  if (btnSignIn)  btnSignIn.style.display  = s.btnIn   ? '' : 'none';
+  if (btnSignOut) btnSignOut.style.display = s.btnOut  ? '' : 'none';
+  if (btnSync)    btnSync.style.display    = s.btnSync ? '' : 'none';
+  if (topbarSync) { topbarSync.textContent = s.icon; topbarSync.title = s.text; topbarSync.style.color = s.color; }
+}
+
+// ── Guardar en Drive ──────────────────────────────────────────
+function saveToDrive(silent) {
+  if (!DRIVE_CONFIG.isSignedIn || !DRIVE_CONFIG.accessToken) {
+    if (!silent) showToast('No conectado', 'Inicia sesión con Google primero', true);
+    return;
+  }
+  if (driveState.syncInProgress) return;
+  driveState.syncInProgress = true;
+  updateDriveStatusUI('syncing');
+
+  var data = JSON.stringify({
+    version: 7, savedAt: new Date().toISOString(),
+    App: {
+      pacientes: App.pacientes, citas: App.citas, citaSeq: App.citaSeq,
+      equipo: App.equipo, listas: App.listas, secuencias: App.secuencias,
+      bgColor: App.bgColor, logoSrc: App.logoSrc, firmaSrc: App.firmaSrc,
+      logoSize: App.logoSize, firmaSize: App.firmaSize,
+      driveClientId: App.driveClientId, driveFileId: App.driveFileId,
+    }
+  });
+
+  var fileId = App.driveFileId || DRIVE_CONFIG.fileId;
+
+  var doUpload = function(id) {
+    var url = id
+      ? 'https://www.googleapis.com/upload/drive/v3/files/' + id + '?uploadType=media'
+      : null;
+
+    if (id) {
+      // Update existing
+      return fetch('https://www.googleapis.com/upload/drive/v3/files/' + id + '?uploadType=media', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': 'Bearer ' + DRIVE_CONFIG.accessToken,
+          'Content-Type': 'application/json',
+        },
+        body: data,
+      }).then(function(r) { return r.json(); });
+    } else {
+      // Create new with metadata
+      var form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify({ name: DRIVE_CONFIG.fileName, mimeType: 'application/json' })], { type: 'application/json' }));
+      form.append('file', new Blob([data], { type: 'application/json' }));
+      return fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + DRIVE_CONFIG.accessToken },
+        body: form,
+      }).then(function(r) { return r.json(); });
+    }
+  };
+
+  var saveOp = fileId ? doUpload(fileId) : findExistingFile().then(function(id) { return doUpload(id); });
+
+  saveOp.then(function(result) {
+    if (result.id) { App.driveFileId = result.id; DRIVE_CONFIG.fileId = result.id; }
+    driveState.lastSync = new Date();
+    driveState.pendingChanges = false;
+    driveState.syncInProgress = false;
+    updateDriveStatusUI('synced');
+    var el = document.getElementById('drive-last-sync');
+    if (el) el.textContent = 'Última sync: ' + driveState.lastSync.toLocaleTimeString();
+    if (!silent) showToast('✅ Guardado en Drive', driveState.lastSync.toLocaleTimeString());
+  }).catch(function(err) {
+    driveState.syncInProgress = false;
+    updateDriveStatusUI('signed-in');
+    if (!silent) showToast('Error al guardar', err.message || '', true);
+    console.error('Save error:', err);
+  });
+}
+
+function findExistingFile() {
+  return fetch('https://www.googleapis.com/drive/v3/files?q=name%3D%27medpro-data.json%27+and+trashed%3Dfalse&fields=files(id)', {
+    headers: { 'Authorization': 'Bearer ' + DRIVE_CONFIG.accessToken }
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    var files = data.files || [];
+    if (files.length > 0) { DRIVE_CONFIG.fileId = files[0].id; App.driveFileId = files[0].id; }
+    return files.length > 0 ? files[0].id : null;
+  });
+}
+
+// ── Cargar desde Drive ────────────────────────────────────────
+function loadFromDrive() {
+  if (!DRIVE_CONFIG.isSignedIn) return;
+  updateDriveStatusUI('syncing');
+
+  findExistingFile().then(function(fileId) {
+    if (!fileId) {
+      updateDriveStatusUI('signed-in');
+      showToast('Drive conectado', 'No hay datos previos. Se guardarán automáticamente.');
+      return;
+    }
+    return fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
+      headers: { 'Authorization': 'Bearer ' + DRIVE_CONFIG.accessToken }
+    }).then(function(r) { return r.json(); });
+  }).then(function(saved) {
+    if (!saved || !saved.App) return;
+    mergeAppData(saved.App);
+    updateDriveStatusUI('synced');
+    driveState.lastSync = new Date();
+    var el = document.getElementById('drive-last-sync');
+    if (el) el.textContent = 'Última sync: ' + driveState.lastSync.toLocaleTimeString();
+    showToast('✅ Datos cargados desde Drive', new Date(saved.savedAt).toLocaleString());
+    renderPacientesDashboard();
+    renderPacientesPanel();
+    initDashboard();
+  }).catch(function(err) {
+    updateDriveStatusUI('signed-in');
+    console.error('Load error:', err);
+  });
+}
+
+function mergeAppData(saved) {
+  if (saved.pacientes?.length) App.pacientes = saved.pacientes;
+  if (saved.citas?.length) App.citas = saved.citas;
+  if (saved.citaSeq) App.citaSeq = saved.citaSeq;
+  if (saved.equipo) App.equipo = saved.equipo;
+  if (saved.listas) App.listas = saved.listas;
+  if (saved.secuencias) App.secuencias = saved.secuencias;
+  if (saved.bgColor) App.bgColor = saved.bgColor;
+  if (saved.logoSrc) App.logoSrc = saved.logoSrc;
+  if (saved.firmaSrc) App.firmaSrc = saved.firmaSrc;
+  if (saved.driveFileId) { App.driveFileId = saved.driveFileId; DRIVE_CONFIG.fileId = saved.driveFileId; }
+  if (saved.driveClientId) App.driveClientId = saved.driveClientId;
+}
+
+function markDirty() {
+  driveState.pendingChanges = true;
+  var btn = document.getElementById('topbar-sync-btn');
+  if (btn && DRIVE_CONFIG.isSignedIn) { btn.textContent = '💾'; btn.title = 'Cambios sin guardar'; }
+}
+
+// Auto-save cada 2 minutos
+setInterval(function() {
+  if (driveState.pendingChanges && DRIVE_CONFIG.isSignedIn) saveToDrive(true);
+}, 2 * 60 * 1000);
+
+// ── PDF con jsPDF ─────────────────────────────────────────────
+function loadJsPDF(callback) {
+  if (window.jspdf?.jsPDF) { callback(window.jspdf.jsPDF); return; }
+  if (window.jsPDF) { callback(window.jsPDF); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  s.onload = function() { callback(window.jspdf?.jsPDF || window.jsPDF); };
+  s.onerror = function() { showToast('Error', 'No se pudo cargar jsPDF', true); };
+  document.head.appendChild(s);
+}
+
+function descargarPDF(docId) {
+  var previewIds = { receta:'receta-preview-body', certificado:'certificado-preview-body',
+    orden:'orden-preview-body', informe:'informe-preview-body', solicitud:'solicitud-preview-body' };
+  var el = document.getElementById(previewIds[docId] || docId+'-preview-body');
+  if (!el) { showToast('Sin vista previa', 'Genera el documento primero', true); return; }
+  showToast('Generando PDF…', 'Un momento');
+  loadJsPDF(function(jsPDF) { generarPDFDesdeHTML(jsPDF, el, docId); });
+}
+
+function generarPDFDesdeHTML(jsPDF, el, docId) {
+  var prefixMap = { receta:'RX', certificado:'CI', orden:'OA', informe:'IM', solicitud:'SA' };
+  var cfg = typeof getDocConfig === 'function' ? getDocConfig(prefixMap[docId]||'RX') : {};
+  var size = cfg.size || 'letter';
+  var orient = (cfg.orient||'portrait') === 'landscape' ? 'l' : 'p';
+  var mt = cfg.mt || 2.5, mb = cfg.mb || 2.5, ml = cfg.ml || 2.5, mr = cfg.mr || 2.5;
+  var pageSizes = { letter:[215.9,279.4], a4:[210,297], legal:[215.9,355.6], a5:[148,210] };
+  var dims = pageSizes[size] || pageSizes.letter;
+
+  var doc = new jsPDF({ orientation: orient, unit: 'mm', format: [dims[0], dims[1]] });
+  var p = getPacienteActivo();
+  var nombre = p ? p.nombre.replace(/\s+/g,'_') : 'paciente';
+  var fecha = new Date().toISOString().split('T')[0];
+  var filename = 'MedPro_'+docId+'_'+nombre+'_'+fecha+'.pdf';
+
+  if (doc.html) {
+    var clone = el.cloneNode(true);
+    clone.style.cssText = 'width:'+(dims[0]-ml-mr)+'mm;font-family:Helvetica,Arial,sans-serif;font-size:11px;position:absolute;left:-9999px;top:0';
+    document.body.appendChild(clone);
+    doc.html(clone, {
+      callback: function(d) {
+        document.body.removeChild(clone);
+        d.save(filename);
+        showToast('✅ PDF descargado', filename);
+      },
+      x: ml, y: mt,
+      width: dims[0] - ml - mr,
+      windowWidth: Math.round((dims[0]-ml-mr)*3.78),
+      autoPaging: 'text',
+    });
+  } else {
+    generarPDFTextoSimple(doc, el, docId, ml, mt, dims[0], mr);
+    doc.save(filename);
+    showToast('✅ PDF descargado', filename);
+  }
+}
+
+function generarPDFTextoSimple(doc, el, docId, ml, mt, pw, mr) {
+  var cfg = getConfig ? getConfig() : {};
+  var lineH = 7; var y = mt + 10; var maxW = pw - ml - mr;
+  var addLine = function(text, size) {
+    if (!text) return;
+    doc.setFontSize(size||10);
+    var lines = doc.splitTextToSize(String(text), maxW);
+    lines.forEach(function(l) {
+      if (y > 270) { doc.addPage(); y = mt; }
+      doc.text(l, ml, y); y += lineH;
+    });
+  };
+  var titles = { receta:'Receta Médica', certificado:'Certificado',
+    orden:'Orden de Admisión', informe:'Informe Médico', solicitud:'Solicitud Aseguradora' };
+  doc.setFontSize(16); doc.setFont('helvetica','bold');
+  doc.text(titles[docId]||docId, pw/2, mt+8, {align:'center'});
+  y = mt + 20;
+  doc.setFont('helvetica','normal');
+  var p = getPacienteActivo();
+  if (p) { addLine('Paciente: '+p.nombre, 12); addLine('Cédula: '+(p.doc||'—'), 10); y += 4; }
+  var text = (el.innerText||el.textContent||'').split('\n').filter(function(l){return l.trim().length>2;}).slice(0,60);
+  text.forEach(function(l) { addLine(l.trim(), 10); });
+}
+
+// ── Excel con SheetJS ─────────────────────────────────────────
+function exportarReporteXLSX() {
+  showToast('Preparando Excel…', '');
+  loadSheetJS(function(XLSX) { generarExcelReporte(XLSX); });
+}
+
+function loadSheetJS(callback) {
+  if (window.XLSX) { callback(window.XLSX); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload = function() { callback(window.XLSX); };
+  s.onerror = function() { showToast('Error', 'No se pudo cargar SheetJS', true); };
+  document.head.appendChild(s);
+}
+
+function generarExcelReporte(XLSX) {
+  var p = getReportePeriodo();
+  var desde = p.desde, hasta = p.hasta;
+  var wb = XLSX.utils.book_new();
+  var pacRows = [['ID','Nombre','Documento','Teléfono','Seguro','Estado','Episodios']];
+  App.pacientes.forEach(function(pac, pi) {
+    pacRows.push([pac.id,pac.nombre,pac.doc||'',pac.tel||'',pac.seguro||'',pac.estado||'',pac.episodios?.length||0]);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pacRows), 'Pacientes');
+
+  var citaRows = [['ID','Paciente','Tipo','Fecha','Hora','Estado']];
+  (App.citas||[]).filter(function(c){return c.fecha>=desde&&c.fecha<=hasta;}).forEach(function(c) {
+    var pac = App.pacientes[c.pacienteIdx];
+    citaRows.push([c.id,pac?.nombre||'—',c.tipo,c.fecha,c.hora||'',c.estado||'']);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(citaRows), 'Citas');
+
+  var pqRows = [['Paciente','Fecha','Procedimiento','Honorarios','Cobrado','Estado']];
+  App.pacientes.forEach(function(pac) {
+    (pac.episodios||[]).forEach(function(ep) {
+      (ep.protocolos||[]).forEach(function(pq) {
+        if (pq.fecha<desde||pq.fecha>hasta) return;
+        pqRows.push([pac.nombre,pq.fecha,(pq.procedimientos||[]).map(function(pr){return pr.nombre;}).join(', '),
+          parseFloat(pq.honorarios?.monto||0),parseFloat(pq.honorarios?.montoRecibido||0),pq.honorarios?.estado||'']);
+      });
+    });
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pqRows), 'Honorarios');
+
+  var filename = 'MedPro_'+desde+'_'+hasta+'.xlsx';
+  XLSX.writeFile(wb, filename);
+  showToast('✅ Excel descargado', filename);
+}
+
+// ── Backup manual ─────────────────────────────────────────────
+function exportarBackupJSON() {
+  var data = JSON.stringify({ version:7, savedAt:new Date().toISOString(),
+    App:{ pacientes:App.pacientes, citas:App.citas, citaSeq:App.citaSeq,
+          equipo:App.equipo, listas:App.listas, secuencias:App.secuencias }}, null, 2);
+  var blob = new Blob([data], {type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'MedPro_backup_'+new Date().toISOString().split('T')[0]+'.json';
+  a.click();
+  showToast('✅ Backup exportado', a.download);
+}
+
+function importarBackupJSON() { document.getElementById('import-json-input')?.click(); }
+
+function procesarImportJSON(input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var saved = JSON.parse(e.target.result);
+      if (saved.App) {
+        mergeAppData(saved.App);
+        renderPacientesDashboard(); renderPacientesPanel(); initDashboard();
+        showToast('✅ Datos importados', '');
+      } else { showToast('Formato inválido', '', true); }
+    } catch(ex) { showToast('Error', ex.message, true); }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// ── Auto-init ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  updateDriveStatusUI('no-config');
+  if (App.driveClientId) {
+    var cfgInput = document.getElementById('cfg-drive-client-id');
+    if (cfgInput) cfgInput.value = App.driveClientId;
+    setTimeout(function() {
+      loadDriveLibraries(function() { initDriveClient(App.driveClientId); });
+    }, 1500);
+  }
+  window.addEventListener('beforeunload', function() {
+    if (driveState.pendingChanges && DRIVE_CONFIG.isSignedIn) saveToDrive(true);
+  });
+});
+// ══════════════════════════════════════════════════════════════
+// AUTENTICACIÓN — Huella digital + PIN + Archivo local
+// ══════════════════════════════════════════════════════════════
+
+var AUTH = {
+  isAuthenticated: false,
+  hasBiometric: false,
+  credentialId: null,
+  pinHash: null,
+  fileHandle: null,
+  fileReady: false,
+};
+
+var AUTH_STORAGE_KEY = 'medpro_auth_v1';
+
+// ── Inicializar ───────────────────────────────────────────────
+function initAuth() {
+  // Load saved auth config
+  try {
+    var saved = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||'{}');
+    AUTH.pinHash = saved.pinHash || null;
+    AUTH.hasBiometric = saved.hasBiometric || false;
+    AUTH.credentialId = saved.credentialId || null;
+  } catch(e) {}
+
+  // Check if we have a remembered file handle
+  var fileHint = localStorage.getItem('medpro_fsa_name');
+  updateLoginUI(fileHint);
+}
+
+function updateLoginUI(fileName) {
+  var nameEl = document.getElementById('login-file-name');
+  var hintEl = document.getElementById('login-file-hint');
+  var bioBtn = document.getElementById('btn-login-biometric');
+  var pinBtn = document.getElementById('btn-login-pin');
+
+  if (AUTH.fileReady || fileName) {
+    if (nameEl) nameEl.textContent = fileName || FSA.fileHandle?.name || 'Archivo listo';
+    if (hintEl) hintEl.textContent = AUTH.hasBiometric || AUTH.pinHash
+      ? 'Autenticación requerida para continuar'
+      : 'Toca para entrar';
+    if (bioBtn) bioBtn.style.display = AUTH.hasBiometric ? 'flex' : 'none';
+    if (pinBtn) pinBtn.style.display = AUTH.pinHash ? 'flex' : 'none';
+    // If no auth configured, show direct enter button
+    if (!AUTH.hasBiometric && !AUTH.pinHash) {
+      if (bioBtn) { bioBtn.style.display = 'flex'; bioBtn.innerHTML = '<span style="font-size:22px">▶️</span> Entrar'; }
+    }
+  } else {
+    if (nameEl) nameEl.textContent = 'Sin archivo de datos';
+    if (hintEl) hintEl.textContent = 'Crea o selecciona tu archivo para comenzar';
+    if (bioBtn) bioBtn.style.display = 'none';
+    if (pinBtn) pinBtn.style.display = 'none';
+  }
+}
+
+// ── Abrir archivo desde pantalla de login ────────────────────
+async function fsaSeleccionarArchivoLogin() {
+  if (!('showOpenFilePicker' in window)) {
+    // Fallback: use file input
+    var input = document.createElement('input');
+    input.type = 'file'; input.accept = '.json';
+    input.onchange = async function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      try {
+        var text = await file.text();
+        var data = JSON.parse(text);
+        if (data.pacientes !== undefined || data.App) {
+          var appData = data.App || data;
+          if (appData.pacientes?.length) App.pacientes = appData.pacientes;
+          if (appData.citas?.length) App.citas = appData.citas;
+          if (appData.citaSeq) App.citaSeq = appData.citaSeq;
+          if (appData.equipo) App.equipo = appData.equipo;
+          if (appData.listas) App.listas = appData.listas;
+          if (appData.secuencias) App.secuencias = appData.secuencias;
+          AUTH.fileReady = true;
+          localStorage.setItem('medpro_fsa_name', file.name);
+          updateLoginUI(file.name);
+          // If no auth configured, enter directly
+          if (!AUTH.hasBiometric && !AUTH.pinHash) entrarAlApp();
+        }
+      } catch(ex) { showToast('Error', 'Archivo inválido', true); }
+    };
+    input.click();
+    return;
+  }
+
+  try {
+    var handles = await window.showOpenFilePicker({
+      types: [{ description: 'MedPro Data', accept: { 'application/json': ['.json'] } }],
+    });
+    FSA.fileHandle = handles[0];
+    AUTH.fileReady = true;
+    await fsaCargarDesdeArchivo();
+    localStorage.setItem('medpro_fsa_name', FSA.fileHandle.name);
+    updateLoginUI(FSA.fileHandle.name);
+    if (!AUTH.hasBiometric && !AUTH.pinHash) entrarAlApp();
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('Error', e.message, true);
+  }
+}
+
+async function fsaCrearArchivoLogin() {
+  if (!('showSaveFilePicker' in window)) {
+    // Fallback: just enter with localStorage
+    AUTH.fileReady = true;
+    updateLoginUI('Almacenamiento local');
+    entrarAlApp();
+    return;
+  }
+
+  try {
+    FSA.fileHandle = await window.showSaveFilePicker({
+      suggestedName: 'medpro-datos.json',
+      types: [{ description: 'MedPro Data', accept: { 'application/json': ['.json'] } }],
+    });
+    AUTH.fileReady = true;
+    await fsaGuardarEnArchivo(true);
+    localStorage.setItem('medpro_fsa_name', FSA.fileHandle.name);
+    updateLoginUI(FSA.fileHandle.name);
+    if (!AUTH.hasBiometric && !AUTH.pinHash) {
+      // First time setup — ask if want to set up PIN
+      mostrarSetupAuth();
+    } else {
+      entrarAlApp();
+    }
+  } catch(e) {
+    if (e.name !== 'AbortError') showToast('Error', e.message, true);
+  }
+}
+
+// ── Pantalla de configuración de autenticación ───────────────
+function mostrarSetupAuth() {
+  var loginFile = document.getElementById('login-file-section');
+  if (loginFile) loginFile.innerHTML = `
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:24px;margin-bottom:8px">🔐</div>
+      <div style="font-size:15px;font-weight:600;color:white;margin-bottom:6px">Configurar acceso</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.6)">¿Deseas proteger el app con PIN?</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button onclick="iniciarConfigPIN()" style="width:100%;padding:14px;background:#00A896;border:none;border-radius:10px;color:white;font-size:15px;font-weight:600;cursor:pointer">
+        🔢 Configurar PIN
+      </button>
+      <button onclick="entrarAlApp()" style="width:100%;padding:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:rgba(255,255,255,0.7);font-size:14px;cursor:pointer">
+        Entrar sin PIN por ahora
+      </button>
+    </div>`;
+}
+
+// ── Configurar PIN ───────────────────────────────────────────
+var _pinSetupMode = false;
+var _pinFirst = '';
+
+function iniciarConfigPIN() {
+  _pinSetupMode = true;
+  _pinFirst = '';
+  var loginFile = document.getElementById('login-file-section');
+  if (loginFile) loginFile.innerHTML = `
+    <div style="text-align:center;margin-bottom:12px;color:rgba(255,255,255,0.8);font-size:14px">
+      Crea un PIN de 4 dígitos
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:16px">
+      <input type="number" maxlength="1" class="pin-input" id="pin-0" oninput="pinNext(0)">
+      <input type="number" maxlength="1" class="pin-input" id="pin-1" oninput="pinNext(1)">
+      <input type="number" maxlength="1" class="pin-input" id="pin-2" oninput="pinNext(2)">
+      <input type="number" maxlength="1" class="pin-input" id="pin-3" oninput="pinNext(3)">
+    </div>
+    <button onclick="confirmarNuevoPIN()" style="width:100%;padding:12px;background:#00A896;border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer">
+      Continuar
+    </button>`;
+  setTimeout(() => document.getElementById('pin-0')?.focus(), 100);
+}
+
+function pinNext(idx) {
+  var el = document.getElementById('pin-'+idx);
+  if (!el) return;
+  var val = el.value.replace(/\D/g,'');
+  el.value = val.slice(-1);
+  if (val && idx < 3) {
+    setTimeout(() => document.getElementById('pin-'+(idx+1))?.focus(), 50);
+  }
+}
+
+function getPINValue() {
+  return [0,1,2,3].map(i => document.getElementById('pin-'+i)?.value||'').join('');
+}
+
+async function hashPIN(pin) {
+  var buf = new TextEncoder().encode(pin + 'medpro_salt_2024');
+  var hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function confirmarNuevoPIN() {
+  var pin = getPINValue();
+  if (pin.length < 4) { showToast('PIN incompleto', 'Ingresa 4 dígitos', true); return; }
+  if (!_pinFirst) {
+    _pinFirst = pin;
+    // Ask to confirm
+    [0,1,2,3].forEach(i => { var el = document.getElementById('pin-'+i); if(el) el.value=''; });
+    var hint = document.querySelector('#login-file-section [style*="Crea un PIN"]');
+    if (hint) hint.textContent = 'Confirma tu PIN';
+    document.getElementById('pin-0')?.focus();
+  } else {
+    if (pin !== _pinFirst) {
+      showToast('PIN no coincide', 'Los PINs deben ser iguales', true);
+      [0,1,2,3].forEach(i => { var el = document.getElementById('pin-'+i); if(el) el.value=''; });
+      _pinFirst = '';
+      return;
+    }
+    AUTH.pinHash = await hashPIN(pin);
+    var authData = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||'{}');
+    authData.pinHash = AUTH.pinHash;
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+    showToast('✅ PIN configurado', '');
+    entrarAlApp();
+  }
+}
+
+// ── Login con huella ─────────────────────────────────────────
+async function loginConHuella() {
+  if (!AUTH.hasBiometric) {
+    // Try to use WebAuthn
+    if (!window.PublicKeyCredential) {
+      showToast('No disponible', 'Este dispositivo no soporta huella digital en el navegador', true);
+      return;
+    }
+    // Check if biometric available
+    var available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    if (!available) {
+      showToast('Sin huella', 'No se detectó sensor de huella en este dispositivo', true);
+      return;
+    }
+    // Register biometric
+    await registrarHuella();
+  } else {
+    await verificarHuella();
+  }
+}
+
+async function registrarHuella() {
+  try {
+    var cred = await navigator.credentials.create({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        rp: { name: 'MedPro', id: location.hostname || 'localhost' },
+        user: { id: new Uint8Array([1]), name: 'medpro_user', displayName: 'Dr. Pirro' },
+        pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',
+          userVerification: 'required',
+        },
+        timeout: 60000,
+      }
+    });
+    AUTH.credentialId = Array.from(new Uint8Array(cred.rawId)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    AUTH.hasBiometric = true;
+    var authData = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||'{}');
+    authData.hasBiometric = true;
+    authData.credentialId = AUTH.credentialId;
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+    entrarAlApp();
+  } catch(e) {
+    if (e.name !== 'NotAllowedError') showToast('Error', e.message, true);
+  }
+}
+
+async function verificarHuella() {
+  try {
+    await navigator.credentials.get({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        userVerification: 'required',
+        timeout: 60000,
+      }
+    });
+    entrarAlApp();
+  } catch(e) {
+    if (e.name !== 'NotAllowedError') showToast('Error de autenticación', e.message, true);
+  }
+}
+
+// ── Login con PIN ────────────────────────────────────────────
+function loginConPIN() {
+  var pinSection = document.getElementById('login-pin-section');
+  var fileSection = document.getElementById('login-file-section');
+  if (pinSection) pinSection.style.display = 'block';
+  if (fileSection) fileSection.style.display = 'none';
+  [0,1,2,3].forEach(i => { var el = document.getElementById('pin-'+i); if(el) el.value=''; });
+  setTimeout(() => document.getElementById('pin-0')?.focus(), 100);
+}
+
+function cancelarPIN() {
+  var pinSection = document.getElementById('login-pin-section');
+  var fileSection = document.getElementById('login-file-section');
+  if (pinSection) pinSection.style.display = 'none';
+  if (fileSection) fileSection.style.display = 'block';
+}
+
+async function verificarPIN() {
+  var pin = getPINValue();
+  if (pin.length < 4) { showToast('PIN incompleto', '', true); return; }
+  var hash = await hashPIN(pin);
+  if (hash === AUTH.pinHash) {
+    entrarAlApp();
+  } else {
+    showToast('PIN incorrecto', 'Intenta nuevamente', true);
+    [0,1,2,3].forEach(i => { var el = document.getElementById('pin-'+i); if(el) el.value=''; });
+    document.getElementById('pin-0')?.focus();
+  }
+}
+
+// ── Entrar al app ─────────────────────────────────────────────
+function entrarAlApp() {
+  AUTH.isAuthenticated = true;
+  var loginScreen = document.getElementById('login-screen');
+  if (loginScreen) {
+    loginScreen.style.opacity = '0';
+    loginScreen.style.transition = 'opacity 0.3s';
+    setTimeout(() => { loginScreen.style.display = 'none'; }, 300);
+  }
+  // Refresh UI with loaded data
+  renderPacientesDashboard();
+  renderPacientesPanel();
+  initDashboard();
+  fsaUpdateUI();
+}
+
+// ── Cerrar sesión ─────────────────────────────────────────────
+async function cerrarSesion() {
+  // Save first
+  if (FSA.fileHandle) {
+    await fsaGuardarEnArchivo(false);
+  } else {
+    guardarLocal();
+    showToast('✅ Datos guardados', '');
+  }
+  AUTH.isAuthenticated = false;
+  // Show login screen
+  var loginScreen = document.getElementById('login-screen');
+  if (loginScreen) {
+    loginScreen.style.display = 'flex';
+    loginScreen.style.opacity = '1';
+  }
+  updateLoginUI(localStorage.getItem('medpro_fsa_name'));
+}
+
+// ── Inicializar en DOMContentLoaded ─────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  initAuth();
+  // Check if biometric button should show
+  var bioBtn = document.getElementById('btn-login-biometric');
+  var pinBtn = document.getElementById('btn-login-pin');
+  if (bioBtn) bioBtn.style.display = AUTH.hasBiometric ? 'flex' : 'none';
+  if (pinBtn) pinBtn.style.display = AUTH.pinHash ? 'flex' : 'none';
+  // If neither, show as "Entrar directo" if file ready
+  if (!AUTH.hasBiometric && !AUTH.pinHash) {
+    if (bioBtn) {
+      bioBtn.style.display = 'flex';
+      bioBtn.onclick = function() {
+        if (AUTH.fileReady || FSA.fileHandle) entrarAlApp();
+        else showToast('Selecciona un archivo primero', '', true);
+      };
+      bioBtn.innerHTML = '<span style="font-size:22px">▶️</span> Entrar al app';
+    }
+  }
+});
+
+// ══════════════════════════════════════════════════════════════
+// GUARDADO EN CADA ACCIÓN IMPORTANTE
+// ══════════════════════════════════════════════════════════════
+function autoGuardar() {
+  if (!AUTH.isAuthenticated) return;
+  if (FSA.fileHandle) {
+    fsaGuardarEnArchivo(true);
+  } else {
+    guardarLocal();
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// PERSISTENCIA: localStorage + File System Access
+// ══════════════════════════════════════════════════════════════
+
+var STORAGE_KEY = 'medpro_data_v1';
+var FSA = { fileHandle: null, lastSaved: null };
+var _localDirty = false;
+
+function guardarLocal() {
+  try {
+    var data = {
+      savedAt: new Date().toISOString(),
+      pacientes: App.pacientes, citas: App.citas, citaSeq: App.citaSeq,
+      equipo: App.equipo, listas: App.listas, secuencias: App.secuencias,
+      bgColor: App.bgColor, logoSrc: App.logoSrc, firmaSrc: App.firmaSrc,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    var el = document.getElementById('local-sync-status');
+    if (el) el.innerHTML = '<span style="color:var(--teal)">✅ ' + new Date().toLocaleTimeString() + '</span>';
+    return true;
+  } catch(e) {
+    if (e.name === 'QuotaExceededError')
+      showToast('Almacenamiento lleno', 'Exporta un backup', true);
+    return false;
+  }
+}
+
+function cargarLocal() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    var data = JSON.parse(raw);
+    if (!data) return false;
+    if (data.pacientes?.length) App.pacientes = data.pacientes;
+    if (data.citas?.length)     App.citas      = data.citas;
+    if (data.citaSeq)           App.citaSeq    = data.citaSeq;
+    if (data.equipo)            App.equipo     = data.equipo;
+    if (data.listas)            App.listas     = data.listas;
+    if (data.secuencias)        App.secuencias = data.secuencias;
+    if (data.bgColor)           App.bgColor    = data.bgColor;
+    if (data.logoSrc)           App.logoSrc    = data.logoSrc;
+    if (data.firmaSrc)          App.firmaSrc   = data.firmaSrc;
+    return true;
+  } catch(e) { return false; }
+}
+
+// FSA functions
+async function fsaGuardarEnArchivo(silent) {
+  if (!FSA.fileHandle) {
+    guardarLocal();
+    return false;
+  }
+  try {
+    var perm = await FSA.fileHandle.queryPermission({ mode: 'readwrite' });
+    if (perm !== 'granted')
+      perm = await FSA.fileHandle.requestPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') { guardarLocal(); return false; }
+
+    var data = JSON.stringify({
+      version: 7, savedAt: new Date().toISOString(),
+      pacientes: App.pacientes, citas: App.citas, citaSeq: App.citaSeq,
+      equipo: App.equipo, listas: App.listas, secuencias: App.secuencias,
+      bgColor: App.bgColor, logoSrc: App.logoSrc, firmaSrc: App.firmaSrc,
+    }, null, 2);
+
+    var writable = await FSA.fileHandle.createWritable();
+    await writable.write(data);
+    await writable.close();
+    FSA.lastSaved = new Date();
+    _localDirty = false;
+    guardarLocal(); // Also backup to localStorage
+    fsaUpdateUI();
+    if (!silent) showToast('✅ Guardado', FSA.fileHandle.name);
+    return true;
+  } catch(e) {
+    console.error('FSA write:', e);
+    guardarLocal();
+    return false;
+  }
+}
+
+async function fsaCargarDesdeArchivo() {
+  if (!FSA.fileHandle) return false;
+  try {
+    var perm = await FSA.fileHandle.queryPermission({ mode: 'read' });
+    if (perm !== 'granted')
+      perm = await FSA.fileHandle.requestPermission({ mode: 'read' });
+    if (perm !== 'granted') return false;
+    var file = await FSA.fileHandle.getFile();
+    var text = await file.text();
+    var data = JSON.parse(text);
+    if (data.pacientes?.length) App.pacientes = data.pacientes;
+    if (data.citas?.length)     App.citas      = data.citas;
+    if (data.citaSeq)           App.citaSeq    = data.citaSeq;
+    if (data.equipo)            App.equipo     = data.equipo;
+    if (data.listas)            App.listas     = data.listas;
+    if (data.secuencias)        App.secuencias = data.secuencias;
+    if (data.bgColor)           App.bgColor    = data.bgColor;
+    if (data.logoSrc)           App.logoSrc    = data.logoSrc;
+    return true;
+  } catch(e) { console.error('FSA read:', e); return false; }
+}
+
+function fsaUpdateUI() {
+  var el = document.getElementById('fsa-status');
+  var fn = document.getElementById('fsa-filename');
+  var ls = document.getElementById('fsa-last-saved');
+  if (FSA.fileHandle) {
+    if (el) el.innerHTML = '<span style="color:var(--teal)">✅ Conectado</span>';
+    if (fn) fn.textContent = FSA.fileHandle.name;
+    if (ls) ls.textContent = FSA.lastSaved ? 'Guardado: ' + FSA.lastSaved.toLocaleTimeString() : '';
+  } else {
+    if (el) el.innerHTML = '<span style="color:var(--text-lt)">Sin archivo</span>';
+  }
+}
+
+// Auto-save every 30s
+setInterval(function() {
+  if (_localDirty) {
+    if (FSA.fileHandle) fsaGuardarEnArchivo(true);
+    else { guardarLocal(); _localDirty = false; }
+  }
+}, 30000);
+
+window.addEventListener('pagehide', function() {
+  if (FSA.fileHandle) fsaGuardarEnArchivo(true);
+  else guardarLocal();
+});
+
+function autoGuardar() {
+  _localDirty = true;
+  if (FSA.fileHandle) fsaGuardarEnArchivo(true);
+  else guardarLocal();
+}
+
+// Backup export/import
+function exportarBackupJSON() {
+  var data = JSON.stringify({ version:7, savedAt:new Date().toISOString(),
+    pacientes:App.pacientes, citas:App.citas, citaSeq:App.citaSeq,
+    equipo:App.equipo, listas:App.listas, secuencias:App.secuencias }, null, 2);
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data], {type:'application/json'}));
+  a.download = 'MedPro_backup_' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  showToast('✅ Backup exportado', a.download);
+}
+
+function importarBackupJSON() {
+  document.getElementById('import-json-input')?.click();
+}
+
+function procesarImportJSON(input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      var src = data.App || data;
+      if (src.pacientes) App.pacientes = src.pacientes;
+      if (src.citas)     App.citas     = src.citas;
+      if (src.equipo)    App.equipo    = src.equipo;
+      if (src.listas)    App.listas    = src.listas;
+      renderPacientesDashboard(); renderPacientesPanel(); initDashboard();
+      guardarLocal();
+      showToast('✅ Datos importados', '');
+    } catch(ex) { showToast('Error', ex.message, true); }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// PDF with jsPDF
+function loadJsPDF(cb) {
+  if (window.jspdf?.jsPDF) { cb(window.jspdf.jsPDF); return; }
+  if (window.jsPDF) { cb(window.jsPDF); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  s.onload = function() { cb(window.jspdf?.jsPDF || window.jsPDF); };
+  s.onerror = function() { showToast('Error', 'No se pudo cargar jsPDF', true); };
+  document.head.appendChild(s);
+}
+
+function descargarPDF(docId) {
+  var ids = {receta:'receta-preview-body',certificado:'certificado-preview-body',
+    orden:'orden-preview-body',informe:'informe-preview-body',solicitud:'solicitud-preview-body'};
+  var el = document.getElementById(ids[docId]||docId+'-preview-body');
+  if (!el) { showToast('Sin vista previa', 'Genera el documento primero', true); return; }
+  showToast('Generando PDF…', '');
+  loadJsPDF(function(jsPDF) {
+    var cfg = typeof getDocConfig==='function' ? getDocConfig({'receta':'RX','certificado':'CI','orden':'OA','informe':'IM','solicitud':'SA'}[docId]||'RX') : {};
+    var dims = {letter:[215.9,279.4],a4:[210,297],legal:[215.9,355.6],a5:[148,210]}[cfg.size||'letter']||[215.9,279.4];
+    var doc = new jsPDF({orientation:(cfg.orient||'portrait')==='landscape'?'l':'p',unit:'mm',format:dims});
+    var p = getPacienteActivo();
+    var name = (p?p.nombre.replace(/\s+/g,'_'):'doc');
+    var fname = 'MedPro_'+docId+'_'+name+'_'+new Date().toISOString().split('T')[0]+'.pdf';
+    if (doc.html) {
+      var cl = el.cloneNode(true);
+      cl.style.cssText='width:'+(dims[0]-5)+'mm;font-family:Helvetica,Arial,sans-serif;font-size:11px;position:absolute;left:-9999px;top:0';
+      document.body.appendChild(cl);
+      doc.html(cl,{callback:function(d){document.body.removeChild(cl);d.save(fname);showToast('✅ PDF',fname);},x:10,y:10,width:dims[0]-20,windowWidth:794});
+    } else {
+      doc.text((el.innerText||'').substring(0,2000),10,20);
+      doc.save(fname);
+      showToast('✅ PDF',fname);
+    }
+  });
+}
+
+// SheetJS for Excel
+function loadSheetJS(cb) {
+  if (window.XLSX) { cb(window.XLSX); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload = function() { cb(window.XLSX); };
+  s.onerror = function() { showToast('Error', 'No se pudo cargar SheetJS', true); };
+  document.head.appendChild(s);
+}
+
+function exportarReporteXLSX() {
+  showToast('Preparando Excel…', '');
+  loadSheetJS(function(XLSX) {
+    var p = getReportePeriodo();
+    var wb = XLSX.utils.book_new();
+    var rows = [['Nombre','Seguro','Episodios','Estado']];
+    App.pacientes.forEach(function(pac) {
+      rows.push([pac.nombre,pac.seguro||'',pac.episodios?.length||0,pac.estado||'']);
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Pacientes');
+    var cRows = [['ID','Paciente','Tipo','Fecha','Estado']];
+    (App.citas||[]).filter(function(c){return c.fecha>=p.desde&&c.fecha<=p.hasta;}).forEach(function(c) {
+      cRows.push([c.id,App.pacientes[c.pacienteIdx]?.nombre||'',c.tipo,c.fecha,c.estado||'']);
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cRows), 'Citas');
+    var fname = 'MedPro_'+p.desde+'_'+p.hasta+'.xlsx';
+    XLSX.writeFile(wb, fname);
+    showToast('✅ Excel descargado', fname);
+  });
+}
 
 </script>
 </body>
