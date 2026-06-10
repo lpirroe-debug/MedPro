@@ -1362,7 +1362,7 @@ input[type="color"] {
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-title" id="topbar-title">Dashboard</div>
-    <button onclick="autoGuardar();showToast('✅ Guardado','')" title="Guardar ahora" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 8px;color:var(--text-lt)">💾</button>
+    <button id="btn-guardar-top" onclick="guardarLocal();showToast('✅ Guardado en este navegador','')" title="Guardar ahora" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 8px;color:var(--text-lt)">💾</button>
     <div class="topbar-search">
       <span class="search-icon">🔍</span>
       <input class="search-input" type="text" placeholder="Buscar pacientes, documentos…">
@@ -11215,14 +11215,7 @@ setInterval(function() {
 window.addEventListener('pagehide', guardarLocal);
 window.addEventListener('beforeunload', guardarLocal);
 
-// Save on panel change
-var _origShowPanel = typeof showPanel === 'function' ? showPanel : null;
-if (_origShowPanel) {
-  showPanel = function(id, navEl) {
-    _origShowPanel(id, navEl);
-    if (_localDirty) guardarLocal();
-  };
-}
+// Save on panel change - done via DOMContentLoaded hook below
 
 // Backup export/import
 function exportarBackupJSON() {
@@ -11301,6 +11294,8 @@ function entrarAlApp() {
   renderPacientesDashboard();
   renderPacientesPanel();
   initDashboard();
+  // Save current state to localStorage
+  guardarLocal();
   // Update badge counts
   setTimeout(actualizarBadges, 500);
 }
@@ -11409,23 +11404,30 @@ function actualizarBadges() {
   });
 }
 
-// Hook autoGuardar to key saves
+// Hook autoGuardar to key saves + showPanel save
 document.addEventListener('DOMContentLoaded', function() {
-  // Override key save functions to auto-save after
-  var hookSave = function(fnName) {
-    var orig = window[fnName];
-    if (typeof orig === 'function') {
-      window[fnName] = function() {
-        var result = orig.apply(this, arguments);
-        autoGuardar();
-        actualizarBadges();
-        return result;
+  setTimeout(function() {
+    // Hook save functions
+    ['saveNuevoPaciente','saveNuevaCita','saveProtocolo','saveEvolucion','saveHC'].forEach(function(fnName) {
+      var orig = window[fnName];
+      if (typeof orig === 'function') {
+        window[fnName] = function() {
+          var result = orig.apply(this, arguments);
+          guardarLocal();
+          actualizarBadges();
+          return result;
+        };
+      }
+    });
+    // Hook showPanel
+    var origSP = window.showPanel;
+    if (typeof origSP === 'function') {
+      window.showPanel = function(id, navEl) {
+        origSP(id, navEl);
+        if (_localDirty) guardarLocal();
       };
     }
-  };
-  setTimeout(function() {
-    ['saveNuevoPaciente','saveNuevaCita','saveProtocolo','saveEvolucion','saveHC'].forEach(hookSave);
-  }, 100);
+  }, 500);
 });
 
 // Drive stubs (kept for UI compatibility)
