@@ -1351,6 +1351,9 @@ input[type="color"] {
         <div class="user-role">Cirugía General</div>
       </div>
     </div>
+    <button onclick="cerrarSesion()" style="width:100%;margin-top:8px;padding:9px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+      🔒 Cerrar sesión
+    </button>
   </div>
 </aside>
 
@@ -1785,6 +1788,7 @@ input[type="color"] {
           <div class="cfg-tab" onclick="setCfgTab(this,'cfg-equipo')">👥 Equipo Qx</div>
           <div class="cfg-tab" onclick="setCfgTab(this,'cfg-docs')">📄 Documentos</div>
           <div class="cfg-tab" onclick="setCfgTab(this,'cfg-mensajes')">💬 Mensajes</div>
+          <div class="cfg-tab" onclick="setCfgTab(this,'cfg-drive')">☁️ Drive</div>
           <div class="cfg-tab" onclick="setCfgTab(this,'cfg-seguridad')">🔒 Seguridad</div>
         </div>
         <div style="display:flex;gap:8px">
@@ -3114,58 +3118,21 @@ Gracias. Dr. [medico] — [contacto].</textarea>
       </div>
       <!-- ── TAB: SEGURIDAD ── -->
       <div id="cfg-seguridad" class="cfg-tab-content">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-
-          <div class="card">
-            <div class="card-header"><div class="card-title">🔒 Acceso a la App</div></div>
-            <div class="card-body" style="display:flex;flex-direction:column;gap:14px">
-              <div class="form-group">
-                <label class="form-label">PIN de acceso</label>
-                <input class="form-input" type="password" placeholder="4-6 dígitos · dejar vacío para desactivar">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Tiempo de bloqueo automático</label>
-                <select class="form-input">
-                  <option>1 minuto</option>
-                  <option>5 minutos</option>
-                  <option selected>15 minutos</option>
-                  <option>30 minutos</option>
-                  <option>Nunca</option>
-                </select>
-              </div>
-              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
-                <input type="checkbox" style="accent-color:var(--teal);width:16px;height:16px">
-                Huella digital / Face ID (si el dispositivo lo soporta)
-              </label>
-              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
-                <input type="checkbox" style="accent-color:var(--teal);width:16px;height:16px">
-                Cerrar sesión automáticamente al salir de la app
-              </label>
+        <!-- PIN config card -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-header">
+            <div>
+              <div class="card-title">🔢 PIN de acceso</div>
+              <div class="card-subtitle">Protege el app con un PIN de 4 dígitos</div>
             </div>
           </div>
-
-          <div class="card">
-            <div class="card-header"><div class="card-title">☁️ Google Drive</div></div>
-            <div class="card-body" style="display:flex;flex-direction:column;gap:14px">
-              <div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--teal-lt);border-radius:var(--radius-sm)">
-                <div style="width:36px;height:36px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px">G</div>
-                <div>
-                  <div style="font-size:13px;font-weight:500">Cuenta vinculada</div>
-                  <div style="font-size:12px;color:var(--text-lt)">leopirro@gmail.com</div>
-                </div>
-                <span class="tag tag-teal" style="margin-left:auto">✓ Activo</span>
-              </div>
-              <div style="font-size:12px;color:var(--text-mid)">Última sincronización: hace 2 minutos</div>
-              <div style="font-size:12px;color:var(--text-mid)">Espacio utilizado: 124 MB de 15 GB</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button class="btn btn-ghost btn-sm">🔄 Forzar sincronización</button>
-                <button class="btn btn-ghost btn-sm">💾 Gestionar respaldos</button>
-                <button class="btn btn-ghost btn-sm">📁 Ver en Drive</button>
-              </div>
-              <button class="btn btn-danger btn-sm" style="width:fit-content">Desvincular cuenta Google</button>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:13px;color:var(--text-mid)">Al configurar un PIN, se pedirá cada vez que abras el app.</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary btn-sm" onclick="configurarPIN()">🔢 Configurar PIN</button>
+              <button class="btn btn-ghost btn-sm" onclick="configurarPIN()">✏️ Cambiar PIN</button>
             </div>
           </div>
-
         </div>
       </div><!-- /cfg-seguridad -->
       </div><!-- /cfg-tabs-wrapper -->
