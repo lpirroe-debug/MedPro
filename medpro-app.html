@@ -6,7 +6,13 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <!-- MedPro v7.1 - Login Screen Active -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <link rel="manifest" href="data:application/json,%7B%22name%22%3A%22MedPro%22%2C%22short_name%22%3A%22MedPro%22%2C%22start_url%22%3A%22.%2Fmedpro-app.html%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230D2137%22%2C%22theme_color%22%3A%22%2300A896%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Crect%20width%3D%27100%27%20height%3D%27100%27%20fill%3D%27%230D2137%27%20rx%3D%2720%27%2F%3E%3Cpath%20d%3D%27M20%2050%20h10%20l7-20%20l14%2040%20l7-30%20l7%2020%20h15%27%20stroke%3D%27%2300A896%27%20stroke-width%3D%275%27%20fill%3D%27none%27%20stroke-linecap%3D%27round%27%2F%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="MedPro">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0D2137">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>MedPro — Gestión Clínica</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -3244,7 +3250,43 @@ Gracias. Dr. [medico] — [contacto].</textarea>
             </div>
           </div>
 
-        </div>
+        
+          <!-- PIN Card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">🔢 PIN de acceso</div>
+                <div class="card-subtitle">Protege el app con un PIN de 4 dígitos</div>
+              </div>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+              <div style="font-size:13px;color:var(--text-mid)">
+                Estado: <strong id="pin-status">Configurado ✅</strong>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="configurarPIN()" style="width:fit-content">
+                🔢 Configurar / Cambiar PIN
+              </button>
+            </div>
+          </div>
+
+          <!-- Notificaciones Card -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">🔔 Recordatorios de citas</div>
+                <div class="card-subtitle">Notificaciones 24h antes de cada cita</div>
+              </div>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+              <div style="font-size:13px;color:var(--text-mid)" id="notif-status">
+                Verificando permisos…
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="solicitarPermisosNotificacion()" style="width:fit-content">
+                🔔 Activar notificaciones
+              </button>
+            </div>
+          </div>
+</div>
       </div><!-- /cfg-seguridad -->
       </div><!-- /cfg-tabs-wrapper -->
 
@@ -6348,8 +6390,16 @@ function renderProtocoloTab(ep) {
               <div class="hc-seccion-title" style="color:var(--gold)">💰 Honorarios (uso interno — no aparece en documentos clínicos)</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
                 <div class="form-group">
-                  <label class="form-label">Honorarios Cirujano Principal (USD)</label>
+                  <label class="form-label">Honorarios Cirujano (USD)</label>
                   <input class="form-input" type="number" step="0.01" id="pq-honor-${ep.id}" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Honorarios Asistente (USD)</label>
+                  <input class="form-input" type="number" step="0.01" id="pq-honor-asistente-${ep.id}" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Honorarios Anestesiólogo (USD)</label>
+                  <input class="form-input" type="number" step="0.01" id="pq-honor-anestesia-${ep.id}" placeholder="0.00">
                 </div>
                 <div class="form-group">
                   <label class="form-label">Estado de Pago</label>
@@ -6501,6 +6551,8 @@ function saveProtocolo(epId) {
     detalles: document.getElementById(`pq-detalles-${epId}`)?.value||'',
     honorarios: {
       monto: document.getElementById(`pq-honor-${epId}`)?.value||'',
+      montoAsistente: document.getElementById(`pq-honor-asistente-${epId}`)?.value||'',
+      montoAnestesia: document.getElementById(`pq-honor-anestesia-${epId}`)?.value||'',
       estado: document.getElementById(`pq-honor-estado-${epId}`)?.value||'Pendiente',
       fecha: document.getElementById(`pq-honor-fecha-${epId}`)?.value||'',
       montoRecibido: document.getElementById(`pq-honor-monto-${epId}`)?.value||''
@@ -6528,7 +6580,10 @@ function renderProtocoloItem(pq, idx, epId) {
           <div class="card-subtitle">${formatFecha(pq.fecha)} · ${pq.cirujano||''}</div>
         </div>
         <div style="display:flex;gap:6px">
-          ${pq.honorarios?.monto?`<span class="tag tag-gold">${pq.honorarios.monto} · ${pq.honorarios.estado}</span>`:''}
+          ${pq.honorarios?.monto?`<span class="tag tag-gold">Cx: $${pq.honorarios.monto}</span>`:''}
+          ${pq.honorarios?.montoAsistente?`<span class="tag" style="background:var(--blue-lt);color:var(--blue)">Ast: $${pq.honorarios.montoAsistente}</span>`:''}
+          ${pq.honorarios?.montoAnestesia?`<span class="tag" style="background:var(--teal-lt);color:var(--teal)">Anest: $${pq.honorarios.montoAnestesia}</span>`:''}
+          ${pq.honorarios?.estado?`<span class="tag ${pq.honorarios.estado==='Pagado'?'tag-teal':pq.honorarios.estado==='Parcial'?'tag-gold':'tag-red'}">${pq.honorarios.estado}</span>`:''}
           <button class="btn btn-ghost btn-sm" onclick="deleteProtocolo('${epId}',${idx})">🗑</button>
         </div>
       </div>
@@ -10473,7 +10528,8 @@ function renderReportes() {
   const totalPacientes = App.pacientes.length;
   const totalCitas = citasFiltradas.length;
   const totalCirugias = citasFiltradas.filter(c=>c.tipo==='Cirugía').length;
-  const totalHonorarios = protocolosFiltrados.reduce((a,pq)=>a+parseFloat(pq.honorarios?.monto||0),0);
+  const totalHonorarios = protocolosFiltrados.reduce((a,pq)=>
+    a+parseFloat(pq.honorarios?.monto||0)+parseFloat(pq.honorarios?.montoAsistente||0)+parseFloat(pq.honorarios?.montoAnestesia||0),0);
   const totalCobrado = protocolosFiltrados.reduce((a,pq)=>a+parseFloat(pq.honorarios?.montoRecibido||0),0);
 
   // Citas por mes
@@ -11019,8 +11075,17 @@ const PAGE_SIZES_CM = {
 
 // Open print preview with content from a doc preview body element
 function abrirVistaPreviaImpresion(contentElementId, docPrefix) {
-  const el = document.getElementById(contentElementId);
-  if (!el) { showToast('Sin contenido', 'Genera el documento primero', true); return; }
+  // Try multiple possible IDs for the preview body
+  var el = document.getElementById(contentElementId);
+  if (!el) {
+    // Try alternative naming
+    var alts = [contentElementId+'-body', contentElementId.replace('-preview-body',''), contentElementId+'-content'];
+    for (var a of alts) {
+      el = document.getElementById(a);
+      if (el) break;
+    }
+  }
+  if (!el) { showToast('Sin contenido', 'Genera el documento primero para poder imprimir', true); return; }
 
   // Load presets from cfg-docs
   const cfg = typeof getDocConfig === 'function' ? getDocConfig(docPrefix||'RX') : {};
@@ -12225,6 +12290,98 @@ function cancelarPIN() {
   var ps = document.getElementById('login-pin-section');
   if (ps) ps.style.display = 'none';
 }
+
+
+// ══════════════════════════════════════════════════════════════
+// RECORDATORIOS DE CITAS
+// ══════════════════════════════════════════════════════════════
+
+function checkRecordatorios() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'denied') return;
+
+  const ahora = new Date();
+  const mananaISO = new Date(ahora.getTime() + 24*60*60*1000).toISOString().split('T')[0];
+  const hoyISO = ahora.toISOString().split('T')[0];
+
+  (App.citas||[]).forEach(c => {
+    if (!c.recordatorio) return;
+    if (c.estado === 'Cancelada' || c.estado === 'No asistió') return;
+    if (c.fecha !== mananaISO && c.fecha !== hoyISO) return;
+
+    const p = App.pacientes[c.pacienteIdx];
+    if (!p) return;
+
+    const esHoy = c.fecha === hoyISO;
+    const label = esHoy ? 'HOY' : 'Mañana';
+    const key = 'notif_' + c.id + '_' + c.fecha;
+    if (localStorage.getItem(key)) return; // Already notified
+
+    const enviar = () => {
+      new Notification('🗓 Cita ' + label + ' — MedPro', {
+        body: (c.hora||'') + ' · ' + p.nombre + ' · ' + c.tipo,
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🏥</text></svg>',
+        tag: key,
+      });
+      localStorage.setItem(key, '1');
+    };
+
+    if (Notification.permission === 'granted') {
+      enviar();
+    } else {
+      Notification.requestPermission().then(perm => {
+        if (perm === 'granted') enviar();
+      });
+    }
+  });
+}
+
+function solicitarPermisosNotificacion() {
+  if (!('Notification' in window)) {
+    showToast('No disponible', 'Tu navegador no soporta notificaciones', true);
+    return;
+  }
+  Notification.requestPermission().then(perm => {
+    if (perm === 'granted') {
+      showToast('✅ Notificaciones activadas', 'Recibirás recordatorios de citas');
+      checkRecordatorios();
+    } else {
+      showToast('Notificaciones bloqueadas', 'Actívalas en Configuración del navegador', true);
+    }
+  });
+}
+
+// Check on load and every hour
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(checkRecordatorios, 3000);
+  setInterval(checkRecordatorios, 60 * 60 * 1000);
+});
+
+
+// Update PIN status in settings
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    var el = document.getElementById('pin-status');
+    if (el) {
+      try {
+        var saved = JSON.parse(localStorage.getItem('medpro_auth_v1')||'{}');
+        el.textContent = saved.pinHash ? 'Configurado ✅' : 'Sin PIN';
+      } catch(e) {}
+    }
+    var notifEl = document.getElementById('notif-status');
+    if (notifEl) {
+      if (!('Notification' in window)) {
+        notifEl.textContent = 'No disponible en este navegador';
+      } else if (Notification.permission === 'granted') {
+        notifEl.innerHTML = '<span style="color:var(--teal)">✅ Activadas</span>';
+      } else if (Notification.permission === 'denied') {
+        notifEl.innerHTML = '<span style="color:var(--red)">❌ Bloqueadas — actívalas en ajustes del navegador</span>';
+      } else {
+        notifEl.textContent = 'Toca el botón para activar';
+      }
+    }
+  }, 500);
+});
 
 </script>
 </body>
