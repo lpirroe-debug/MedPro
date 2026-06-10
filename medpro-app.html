@@ -1322,6 +1322,7 @@ input[type="color"] {
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <button id="topbar-sync-btn" onclick="saveToDrive(false)" title="Sincronizar con Drive" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 8px;border-radius:6px;color:var(--text-lt);transition:all 0.2s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='none'">☁️</button>
     <div class="topbar-search">
       <span class="search-icon">🔍</span>
       <input class="search-input" type="text" placeholder="Buscar pacientes, documentos…">
@@ -1744,6 +1745,7 @@ input[type="color"] {
           <div class="cfg-tab" onclick="setCfgTab(this,'cfg-equipo')">👥 Equipo Qx</div>
           <div class="cfg-tab" onclick="setCfgTab(this,'cfg-docs')">📄 Documentos</div>
           <div class="cfg-tab" onclick="setCfgTab(this,'cfg-mensajes')">💬 Mensajes</div>
+          <div class="cfg-tab" onclick="setCfgTab(this,'cfg-drive')">☁️ Drive</div>
           <div class="cfg-tab" onclick="setCfgTab(this,'cfg-seguridad')">🔒 Seguridad</div>
         </div>
         <div style="display:flex;gap:8px">
@@ -3043,6 +3045,102 @@ Gracias. Dr. [medico] — [contacto].</textarea>
 
         </div>
       </div><!-- /cfg-mensajes -->
+
+      <!-- ── TAB: DRIVE ── -->
+      <div id="cfg-drive" class="cfg-tab-content">
+        <div class="callout callout-teal" style="margin-bottom:4px">
+          ☁️ <strong>Google Drive</strong> — Tus datos se guardan en tu propio Drive personal. Nadie más tiene acceso.
+        </div>
+
+        <!-- Estado de conexión -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Estado de conexión</div>
+              <div id="drive-last-sync" style="font-size:12px;color:var(--text-lt)"></div>
+            </div>
+            <div id="drive-status" style="font-size:14px">☁️ Sin configurar</div>
+          </div>
+          <div class="card-body" style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="btn-drive-signin" onclick="signInGoogle()">
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:18px;height:18px;margin-right:6px"> Iniciar sesión con Google
+            </button>
+            <button class="btn btn-ghost" id="btn-drive-signout" style="display:none!important" onclick="signOutGoogle()">
+              Cerrar sesión de Google
+            </button>
+            <button class="btn btn-ghost" id="btn-drive-sync" style="display:none!important" onclick="saveToDrive(false)">
+              🔄 Sincronizar ahora
+            </button>
+            <button class="btn btn-ghost" id="btn-drive-load" onclick="loadFromDrive()">
+              ↓ Cargar desde Drive
+            </button>
+          </div>
+        </div>
+
+        <!-- Configuración Client ID -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔧 Configuración de Google API</div>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:14px">
+            <div class="callout" style="background:var(--gold-lt);border-color:var(--gold)">
+              <strong>Pasos para obtener el Client ID (una sola vez, ~10 minutos):</strong><br>
+              1. Ve a <a href="https://console.cloud.google.com" target="_blank" style="color:var(--teal)">console.cloud.google.com</a><br>
+              2. Crea un nuevo proyecto (ej: "MedPro")<br>
+              3. Ve a <strong>APIs y servicios → Biblioteca</strong> → activa <strong>Google Drive API</strong><br>
+              4. Ve a <strong>APIs y servicios → Credenciales → Crear credenciales → ID de cliente OAuth</strong><br>
+              5. Tipo de aplicación: <strong>Aplicación web</strong><br>
+              6. En "Orígenes de JavaScript autorizados" agrega la URL donde usas el app (ej: <code>http://localhost</code> o tu dominio)<br>
+              7. Copia el <strong>Client ID</strong> generado y pégalo aquí abajo
+            </div>
+            <div class="form-group">
+              <label class="form-label">Google OAuth Client ID *</label>
+              <input class="form-input" id="cfg-drive-client-id" type="text"
+                placeholder="xxxxx.apps.googleusercontent.com"
+                value="">
+              <div style="font-size:11px;color:var(--text-lt);margin-top:4px">
+                Formato: números-letras.apps.googleusercontent.com
+              </div>
+            </div>
+            <div>
+              <button class="btn btn-primary" onclick="saveDriveConfig()">
+                ✓ Guardar y conectar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Opciones de sincronización -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">⚙️ Opciones de sincronización</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
+              <input type="checkbox" id="cfg-drive-autosync" checked
+                style="accent-color:var(--teal);width:15px;height:15px">
+              <div><strong>Sincronización automática</strong> — guarda cambios cada 2 minutos</div>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
+              <input type="checkbox" id="cfg-drive-sync-on-exit" checked
+                style="accent-color:var(--teal);width:15px;height:15px">
+              <div><strong>Guardar al salir</strong> — sincroniza antes de cerrar el app</div>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
+              <input type="checkbox" id="cfg-drive-pdf-auto" checked
+                style="accent-color:var(--teal);width:15px;height:15px">
+              <div><strong>Guardar PDFs en Drive</strong> — los documentos exportados se guardan automáticamente</div>
+            </label>
+            <div style="padding-top:8px;border-top:1px solid var(--border)">
+              <div style="font-size:12px;color:var(--text-lt);margin-bottom:8px">Acciones manuales</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-ghost btn-sm" onclick="exportarBackupJSON()">↓ Exportar backup JSON</button>
+                <button class="btn btn-ghost btn-sm" onclick="importarBackupJSON()">↑ Importar backup JSON</button>
+                <input type="file" id="import-json-input" accept=".json" style="display:none"
+                  onchange="procesarImportJSON(this)">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /cfg-drive -->
 
       <!-- ── TAB: SEGURIDAD ── -->
       <div id="cfg-seguridad" class="cfg-tab-content">
@@ -11074,6 +11172,670 @@ function seleccionarPacienteDocRapido(pi, tipo) {
     else if (tipo === 'solicitud') abrirSolicitud();
   }, 150);
 }
+
+
+// ══ FASE 7 — GOOGLE DRIVE + PDF ══
+// ══════════════════════════════════════════════════════════════
+// FASE 7 — GOOGLE DRIVE + PDF REAL
+// ══════════════════════════════════════════════════════════════
+
+// ── Configuración Google ──────────────────────────────────────
+var DRIVE_CONFIG = {
+  clientId: '',        // Se configura en ⚙️ Configuración → ☁️ Drive
+  apiKey: '',          // Opcional, para operaciones de lectura
+  scope: 'https://www.googleapis.com/auth/drive.file',
+  discoveryDoc: 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
+  fileName: 'medpro-data.json',
+  fileId: null,        // Guardado tras primera sincronización
+  isSignedIn: false,
+  isLoaded: false,
+};
+
+// ── Estado de sync ─────────────────────────────────────────────
+var driveState = {
+  lastSync: null,
+  pendingChanges: false,
+  syncInProgress: false,
+};
+
+// ══════════════════════════════════════════════════════════════
+// CARGA DE LA LIBRERÍA GAPI
+// ══════════════════════════════════════════════════════════════
+function loadGapiScript() {
+  if (window.gapi) { initGapiClient(); return; }
+  const script = document.createElement('script');
+  script.src = 'https://apis.google.com/js/api.js';
+  script.onload = () => {
+    gapi.load('client:auth2', initGapiClient);
+  };
+  script.onerror = () => {
+    showToast('Error de red', 'No se pudo cargar la API de Google', true);
+    updateDriveStatusUI('error');
+  };
+  document.head.appendChild(script);
+}
+
+function initGapiClient() {
+  const clientId = document.getElementById('cfg-drive-client-id')?.value?.trim()
+    || App.driveClientId || '';
+  if (!clientId) {
+    updateDriveStatusUI('no-config');
+    return;
+  }
+  gapi.client.init({
+    clientId: clientId,
+    scope: DRIVE_CONFIG.scope,
+    discoveryDocs: [DRIVE_CONFIG.discoveryDoc],
+  }).then(() => {
+    DRIVE_CONFIG.isLoaded = true;
+    DRIVE_CONFIG.clientId = clientId;
+    const authInstance = gapi.auth2.getAuthInstance();
+    DRIVE_CONFIG.isSignedIn = authInstance.isSignedIn.get();
+    authInstance.isSignedIn.listen(onSignInChange);
+    updateDriveStatusUI(DRIVE_CONFIG.isSignedIn ? 'signed-in' : 'signed-out');
+    if (DRIVE_CONFIG.isSignedIn) loadFromDrive();
+  }).catch(err => {
+    console.error('GAPI init error:', err);
+    updateDriveStatusUI('error');
+    showToast('Error de autenticación', err.details || err.error || 'Verifica el Client ID', true);
+  });
+}
+
+function onSignInChange(isSignedIn) {
+  DRIVE_CONFIG.isSignedIn = isSignedIn;
+  updateDriveStatusUI(isSignedIn ? 'signed-in' : 'signed-out');
+  if (isSignedIn) loadFromDrive();
+}
+
+function signInGoogle() {
+  if (!DRIVE_CONFIG.isLoaded) { loadGapiScript(); return; }
+  gapi.auth2.getAuthInstance().signIn().catch(err => {
+    showToast('Error al iniciar sesión', err.error || 'Intenta nuevamente', true);
+  });
+}
+
+function signOutGoogle() {
+  if (!DRIVE_CONFIG.isLoaded) return;
+  gapi.auth2.getAuthInstance().signOut().then(() => {
+    DRIVE_CONFIG.isSignedIn = false;
+    updateDriveStatusUI('signed-out');
+    showToast('Sesión cerrada', 'Desconectado de Google Drive');
+  });
+}
+
+function updateDriveStatusUI(status) {
+  const statusEl = document.getElementById('drive-status');
+  const btnSignIn = document.getElementById('btn-drive-signin');
+  const btnSignOut = document.getElementById('btn-drive-signout');
+  const btnSync = document.getElementById('btn-drive-sync');
+  const topbarSync = document.getElementById('topbar-sync-btn');
+
+  const states = {
+    'no-config':  { icon:'☁️', text:'Sin configurar', color:'var(--text-lt)', btnIn:true,  btnOut:false, btnSync:false },
+    'signed-out': { icon:'🔒', text:'No conectado',   color:'var(--text-lt)', btnIn:true,  btnOut:false, btnSync:false },
+    'signed-in':  { icon:'✅', text:'Conectado',       color:'var(--teal)',    btnIn:false, btnOut:true,  btnSync:true  },
+    'syncing':    { icon:'🔄', text:'Sincronizando…', color:'var(--blue)',    btnIn:false, btnOut:false, btnSync:false },
+    'synced':     { icon:'☁️', text:'Sincronizado',    color:'var(--teal)',    btnIn:false, btnOut:true,  btnSync:true  },
+    'error':      { icon:'⚠️', text:'Error',           color:'var(--red)',     btnIn:true,  btnOut:false, btnSync:false },
+  };
+
+  const s = states[status] || states['no-config'];
+  if (statusEl) {
+    statusEl.innerHTML = `<span style="color:${s.color}">${s.icon} ${s.text}</span>`;
+  }
+  if (btnSignIn)  btnSignIn.style.display  = s.btnIn   ? 'inline-flex' : 'none';
+  if (btnSignOut) btnSignOut.style.display = s.btnOut  ? 'inline-flex' : 'none';
+  if (btnSync)    btnSync.style.display    = s.btnSync ? 'inline-flex' : 'none';
+  if (topbarSync) {
+    topbarSync.title = s.text;
+    topbarSync.style.color = s.color;
+    topbarSync.textContent = s.icon;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// GUARDAR EN DRIVE
+// ══════════════════════════════════════════════════════════════
+function saveToDrive(silent) {
+  if (!DRIVE_CONFIG.isSignedIn) {
+    if (!silent) showToast('No conectado', 'Inicia sesión con Google primero', true);
+    return;
+  }
+  if (driveState.syncInProgress) return;
+  driveState.syncInProgress = true;
+  updateDriveStatusUI('syncing');
+
+  const data = JSON.stringify({
+    version: 7,
+    savedAt: new Date().toISOString(),
+    App: {
+      pacientes: App.pacientes,
+      citas: App.citas,
+      citaSeq: App.citaSeq,
+      equipo: App.equipo,
+      listas: App.listas,
+      secuencias: App.secuencias,
+      bgColor: App.bgColor,
+      logoSrc: App.logoSrc,
+      firmaSrc: App.firmaSrc,
+      logoSize: App.logoSize,
+      firmaSize: App.firmaSize,
+      driveClientId: App.driveClientId,
+      driveFileId: App.driveFileId,
+    }
+  }, null, 2);
+
+  const fileMetadata = { name: DRIVE_CONFIG.fileName, mimeType: 'application/json' };
+  const fileId = App.driveFileId || DRIVE_CONFIG.fileId;
+
+  const doSave = (id) => {
+    const method = id ? 'PATCH' : 'POST';
+    const url = id
+      ? `https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=multipart`
+      : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+
+    const boundary = '-------medpro_boundary';
+    const body = [
+      `--${boundary}`,
+      'Content-Type: application/json; charset=UTF-8',
+      '',
+      JSON.stringify(fileMetadata),
+      `--${boundary}`,
+      'Content-Type: application/json',
+      '',
+      data,
+      `--${boundary}--`,
+    ].join('\r\n');
+
+    return gapi.client.request({
+      path: url.replace('https://www.googleapis.com',''),
+      method: method,
+      headers: { 'Content-Type': `multipart/related; boundary="${boundary}"` },
+      body: body,
+    });
+  };
+
+  // If we have a fileId, update; otherwise create
+  const savePromise = fileId ? doSave(fileId) : findOrCreateFile(data);
+
+  savePromise.then(resp => {
+    const result = resp.result || JSON.parse(resp.body||'{}');
+    if (result.id) {
+      App.driveFileId = result.id;
+      DRIVE_CONFIG.fileId = result.id;
+    }
+    driveState.lastSync = new Date();
+    driveState.pendingChanges = false;
+    driveState.syncInProgress = false;
+    updateDriveStatusUI('synced');
+    updateLastSyncDisplay();
+    if (!silent) showToast('✅ Guardado en Drive', new Date().toLocaleTimeString());
+  }).catch(err => {
+    driveState.syncInProgress = false;
+    updateDriveStatusUI('signed-in');
+    if (!silent) showToast('Error al guardar', err.result?.error?.message || 'Intenta nuevamente', true);
+    console.error('Drive save error:', err);
+  });
+}
+
+function findOrCreateFile(data) {
+  // Search for existing file
+  return gapi.client.drive.files.list({
+    q: `name='${DRIVE_CONFIG.fileName}' and trashed=false`,
+    spaces: 'drive',
+    fields: 'files(id, name)',
+  }).then(resp => {
+    const files = resp.result.files || [];
+    if (files.length > 0) {
+      DRIVE_CONFIG.fileId = files[0].id;
+      App.driveFileId = files[0].id;
+      return updateFileContent(files[0].id, data);
+    } else {
+      return createNewFile(data);
+    }
+  });
+}
+
+function updateFileContent(fileId, data) {
+  return gapi.client.request({
+    path: `/upload/drive/v3/files/${fileId}?uploadType=media`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: data,
+  });
+}
+
+function createNewFile(data) {
+  const boundary = '-------medpro_new';
+  const meta = JSON.stringify({ name: DRIVE_CONFIG.fileName, mimeType: 'application/json' });
+  const body = [`--${boundary}`, 'Content-Type: application/json; charset=UTF-8', '', meta,
+    `--${boundary}`, 'Content-Type: application/json', '', data, `--${boundary}--`].join('\r\n');
+  return gapi.client.request({
+    path: '/upload/drive/v3/files?uploadType=multipart',
+    method: 'POST',
+    headers: { 'Content-Type': `multipart/related; boundary="${boundary}"` },
+    body: body,
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// CARGAR DESDE DRIVE
+// ══════════════════════════════════════════════════════════════
+function loadFromDrive() {
+  if (!DRIVE_CONFIG.isSignedIn) return;
+  updateDriveStatusUI('syncing');
+
+  gapi.client.drive.files.list({
+    q: `name='${DRIVE_CONFIG.fileName}' and trashed=false`,
+    spaces: 'drive',
+    fields: 'files(id, name, modifiedTime)',
+    orderBy: 'modifiedTime desc',
+  }).then(resp => {
+    const files = resp.result.files || [];
+    if (files.length === 0) {
+      updateDriveStatusUI('signed-in');
+      showToast('Drive conectado', 'No se encontraron datos previos. Se guardarán al siguiente cambio.');
+      return;
+    }
+    const file = files[0];
+    DRIVE_CONFIG.fileId = file.id;
+    return gapi.client.drive.files.get({
+      fileId: file.id,
+      alt: 'media',
+    });
+  }).then(resp => {
+    if (!resp) return;
+    const saved = typeof resp.result === 'object' ? resp.result : JSON.parse(resp.body||'{}');
+    if (saved.App) {
+      mergeAppData(saved.App);
+      updateDriveStatusUI('synced');
+      driveState.lastSync = new Date();
+      updateLastSyncDisplay();
+      showToast('✅ Datos cargados desde Drive', 'Guardado: ' + new Date(saved.savedAt).toLocaleString());
+      // Refresh UI
+      renderPacientesDashboard();
+      renderPacientesPanel();
+      initDashboard();
+    }
+  }).catch(err => {
+    updateDriveStatusUI('signed-in');
+    console.error('Drive load error:', err);
+    showToast('Error al cargar datos', err.result?.error?.message || '', true);
+  });
+}
+
+function mergeAppData(saved) {
+  // Careful merge — preserve structure
+  if (saved.pacientes?.length) App.pacientes = saved.pacientes;
+  if (saved.citas?.length) App.citas = saved.citas;
+  if (saved.citaSeq) App.citaSeq = saved.citaSeq;
+  if (saved.equipo) App.equipo = saved.equipo;
+  if (saved.listas) App.listas = saved.listas;
+  if (saved.secuencias) App.secuencias = saved.secuencias;
+  if (saved.bgColor) App.bgColor = saved.bgColor;
+  if (saved.logoSrc) App.logoSrc = saved.logoSrc;
+  if (saved.firmaSrc) App.firmaSrc = saved.firmaSrc;
+  if (saved.driveFileId) { App.driveFileId = saved.driveFileId; DRIVE_CONFIG.fileId = saved.driveFileId; }
+  if (saved.driveClientId) App.driveClientId = saved.driveClientId;
+}
+
+function updateLastSyncDisplay() {
+  const el = document.getElementById('drive-last-sync');
+  if (el && driveState.lastSync) {
+    el.textContent = 'Última sync: ' + driveState.lastSync.toLocaleTimeString();
+  }
+}
+
+// Auto-save every 2 minutes if there are pending changes
+setInterval(() => {
+  if (driveState.pendingChanges && DRIVE_CONFIG.isSignedIn) {
+    saveToDrive(true);
+  }
+}, 2 * 60 * 1000);
+
+// Mark pending changes on any data modification
+function markDirty() {
+  driveState.pendingChanges = true;
+  const topbarSync = document.getElementById('topbar-sync-btn');
+  if (topbarSync && DRIVE_CONFIG.isSignedIn) {
+    topbarSync.textContent = '💾';
+    topbarSync.title = 'Cambios sin guardar — toca para sincronizar';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// PDF REAL CON jsPDF
+// ══════════════════════════════════════════════════════════════
+function loadJsPDF(callback) {
+  if (window.jspdf?.jsPDF) { callback(window.jspdf.jsPDF); return; }
+  if (window.jsPDF) { callback(window.jsPDF); return; }
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  script.onload = () => {
+    const PDF = window.jspdf?.jsPDF || window.jsPDF;
+    if (PDF) callback(PDF);
+    else showToast('Error', 'No se pudo cargar jsPDF', true);
+  };
+  script.onerror = () => showToast('Error de red', 'No se pudo cargar jsPDF', true);
+  document.head.appendChild(script);
+}
+
+function descargarPDF(docId) {
+  // Get the preview body element
+  const previewIds = {
+    receta: 'receta-preview-body',
+    certificado: 'certificado-preview-body',
+    orden: 'orden-preview-body',
+    informe: 'informe-preview-body',
+    solicitud: 'solicitud-preview-body',
+  };
+  const bodyId = previewIds[docId] || (docId + '-preview-body');
+  const el = document.getElementById(bodyId);
+  if (!el) {
+    showToast('Sin vista previa', 'Genera el documento primero para poder descargarlo', true);
+    return;
+  }
+  showToast('Generando PDF…', 'Un momento por favor');
+  loadJsPDF(jsPDF => generarPDFDesdeHTML(jsPDF, el, docId));
+}
+
+function generarPDFDesdeHTML(jsPDF, el, docId) {
+  // Get doc config
+  const prefixMap = { receta:'RX', certificado:'CI', orden:'OA', informe:'IM', solicitud:'SA' };
+  const prefix = prefixMap[docId] || 'RX';
+  const cfg = typeof getDocConfig === 'function' ? getDocConfig(prefix) : {};
+  const size = cfg.size || 'letter';
+  const orient = (cfg.orient || 'portrait') === 'landscape' ? 'l' : 'p';
+  const mt = cfg.mt || 2.5;
+  const mb = cfg.mb || 2.5;
+  const ml = cfg.ml || 2.5;
+  const mr = cfg.mr || 2.5;
+
+  const pageSizes = {
+    letter: [215.9, 279.4], a4: [210, 297],
+    legal: [215.9, 355.6], a5: [148, 210],
+  };
+  const [pw, ph] = pageSizes[size] || pageSizes.letter;
+
+  const doc = new jsPDF({
+    orientation: orient,
+    unit: 'mm',
+    format: [pw, ph],
+  });
+
+  // Use html() method if available (jsPDF 2.x)
+  if (doc.html) {
+    // Clone element and apply inline styles for PDF rendering
+    const clone = el.cloneNode(true);
+    clone.style.width = (pw - ml - mr) + 'mm';
+    clone.style.fontFamily = 'Helvetica, Arial, sans-serif';
+    clone.style.fontSize = '11px';
+    document.body.appendChild(clone);
+    clone.style.position = 'absolute';
+    clone.style.left = '-9999px';
+    clone.style.top = '0';
+
+    doc.html(clone, {
+      callback: function(d) {
+        document.body.removeChild(clone);
+        const p = getPacienteActivo();
+        const nombre = p ? p.nombre.replace(/\s+/g,'_') : 'paciente';
+        const fecha = new Date().toISOString().split('T')[0];
+        d.save(`MedPro_${docId}_${nombre}_${fecha}.pdf`);
+        showToast('✅ PDF descargado', '');
+        // Also save to Drive if connected
+        if (DRIVE_CONFIG.isSignedIn) {
+          guardarPDFEnDrive(d, docId, nombre, fecha);
+        }
+      },
+      x: ml,
+      y: mt,
+      width: pw - ml - mr,
+      windowWidth: Math.round((pw - ml - mr) * 3.78),
+      autoPaging: 'text',
+      margin: [mt, mr, mb, ml],
+    });
+  } else {
+    // Fallback: text-only PDF
+    generarPDFTexto(doc, el, docId, ml, mt, pw, mr);
+    const p = getPacienteActivo();
+    const nombre = p ? p.nombre.replace(/\s+/g,'_') : 'paciente';
+    doc.save(`MedPro_${docId}_${nombre}_${new Date().toISOString().split('T')[0]}.pdf`);
+    showToast('✅ PDF descargado', '');
+  }
+}
+
+function generarPDFTexto(doc, el, docId, ml, mt, pw, mr) {
+  // Text-only fallback PDF
+  const p = getPacienteActivo();
+  const cfg = getConfig();
+  const lineH = 7;
+  let y = mt;
+  const maxW = pw - ml - mr;
+  const addLine = (text, size, bold) => {
+    doc.setFontSize(size || 11);
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    const lines = doc.splitTextToSize(text || '', maxW);
+    lines.forEach(line => {
+      if (y > 270) { doc.addPage(); y = mt; }
+      doc.text(line, ml, y);
+      y += lineH;
+    });
+  };
+  const addGap = (n=4) => { y += n; };
+
+  // Header
+  doc.setFillColor(13, 33, 55);
+  doc.rect(0, 0, pw, 22, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(12); doc.setFont('helvetica','bold');
+  doc.text(document.getElementById('mb-line1')?.value || cfg.mb_l1 || '', ml, 9);
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.text(document.getElementById('mb-line2')?.value || cfg.mb_l2 || '', ml, 14);
+  doc.text(document.getElementById('mb-line4')?.value || cfg.mb_l4 || '', ml, 19);
+  y = 30;
+  doc.setTextColor(0,0,0);
+
+  // Title
+  const titles = {receta:'Receta Médica', certificado:'Certificado', orden:'Orden de Admisión',
+    informe:'Informe Médico', solicitud:'Solicitud a Aseguradora'};
+  doc.setFontSize(16); doc.setFont('helvetica','bold');
+  doc.text(titles[docId]||docId, pw/2, y, {align:'center'});
+  y += 10;
+
+  // Patient info
+  if (p) {
+    doc.setFontSize(11); doc.setFont('helvetica','bold');
+    addLine('PACIENTE', 9, true); addGap(1);
+    addLine(p.nombre, 12, true);
+    addLine((p.tipodoc||'Cédula')+': '+(p.doc||'—'), 10);
+    addLine('Seguro: '+(p.seguro||'Particular')+(p.poliza?' · Póliza: '+p.poliza:''), 10);
+    addGap(6);
+  }
+
+  // Extract text content from HTML
+  const textContent = el.innerText || el.textContent || '';
+  const relevantLines = textContent.split('\n').filter(l => l.trim().length > 2).slice(0, 50);
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  relevantLines.forEach(line => addLine(line.trim(), 10));
+
+  // Signature area
+  y = Math.max(y + 20, 230);
+  doc.setDrawColor(200,200,200);
+  doc.line(pw - mr - 70, y, pw - mr, y);
+  addGap(4);
+  doc.setFontSize(10); doc.setFont('helvetica','bold');
+  doc.text(document.getElementById('firma-nombre')?.value || cfg.firmaNombre || '', pw - mr - 35, y + 5, {align:'center'});
+  doc.setFont('helvetica','normal');
+  doc.text(document.getElementById('firma-esp')?.value || cfg.firmaEsp || '', pw - mr - 35, y + 10, {align:'center'});
+  doc.text(document.getElementById('firma-reg')?.value || cfg.firmaReg || '', pw - mr - 35, y + 15, {align:'center'});
+}
+
+function guardarPDFEnDrive(doc, docId, nombre, fecha) {
+  try {
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
+    const boundary = '-------pdf_boundary';
+    const meta = JSON.stringify({
+      name: `MedPro_${docId}_${nombre}_${fecha}.pdf`,
+      mimeType: 'application/pdf',
+    });
+    const body = [`--${boundary}`, 'Content-Type: application/json; charset=UTF-8', '', meta,
+      `--${boundary}`, 'Content-Type: application/pdf', 'Content-Transfer-Encoding: base64', '', pdfBase64,
+      `--${boundary}--`].join('\r\n');
+    gapi.client.request({
+      path: '/upload/drive/v3/files?uploadType=multipart',
+      method: 'POST',
+      headers: { 'Content-Type': `multipart/related; boundary="${boundary}"` },
+      body: body,
+    }).then(() => showToast('PDF guardado en Drive', 'MedPro_'+docId+'_'+nombre+'.pdf'));
+  } catch(e) {
+    console.warn('PDF Drive save skipped:', e);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// EXPORTAR XLSX REAL CON SheetJS
+// ══════════════════════════════════════════════════════════════
+function exportarReporteXLSX() {
+  showToast('Preparando Excel…', 'Un momento');
+  loadSheetJS(XLSX => generarExcelReporte(XLSX));
+}
+
+function loadSheetJS(callback) {
+  if (window.XLSX) { callback(window.XLSX); return; }
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  script.onload = () => callback(window.XLSX);
+  script.onerror = () => showToast('Error de red', 'No se pudo cargar SheetJS', true);
+  document.head.appendChild(script);
+}
+
+function generarExcelReporte(XLSX) {
+  const { desde, hasta } = getReportePeriodo();
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: Pacientes
+  const pacRows = [['ID','Nombre','Documento','Teléfono','Seguro','Póliza','Estado','Episodios','Citas']];
+  App.pacientes.forEach((p, pi) => {
+    const citas = (App.citas||[]).filter(c=>c.pacienteIdx===pi && c.fecha>=desde && c.fecha<=hasta).length;
+    pacRows.push([p.id, p.nombre, p.doc||'', p.tel||'', p.seguro||'Particular',
+      p.poliza||'', p.estado||'Activo', p.episodios?.length||0, citas]);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pacRows), 'Pacientes');
+
+  // Sheet 2: Citas en período
+  const citaRows = [['ID','Paciente','Tipo','Fecha','Hora','Lugar','Estado','Diagnóstico']];
+  (App.citas||[]).filter(c=>c.fecha>=desde&&c.fecha<=hasta).forEach(c => {
+    const p = App.pacientes[c.pacienteIdx];
+    citaRows.push([c.id, p?.nombre||'—', c.tipo, c.fecha, c.hora||'', c.lugar||'',
+      c.estado||'Pendiente', c.diagnostico||'']);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(citaRows), 'Citas');
+
+  // Sheet 3: Protocolos y honorarios
+  const pqRows = [['ID','Paciente','Fecha','Procedimientos','Diagnóstico','Honorarios','Cobrado','Estado pago']];
+  App.pacientes.forEach(p => {
+    (p.episodios||[]).forEach(ep => {
+      (ep.protocolos||[]).forEach(pq => {
+        if (pq.fecha < desde || pq.fecha > hasta) return;
+        pqRows.push([pq.id, p.nombre, pq.fecha,
+          (pq.procedimientos||[]).map(pr=>pr.nombre).join(', '),
+          (pq.diagPre||[]).map(d=>d.nombre).join(', '),
+          parseFloat(pq.honorarios?.monto||0),
+          parseFloat(pq.honorarios?.montoRecibido||0),
+          pq.honorarios?.estado||'—']);
+      });
+    });
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pqRows), 'Protocolos');
+
+  // Sheet 4: Pendientes
+  const pendRows = [['Paciente','Episodio','Pendiente','Fecha','Estado']];
+  getAllPendientes(false).forEach(item => {
+    pendRows.push([item.paciente.nombre, item.episodio.id, item.pendiente.texto,
+      item.pendiente.fecha, item.pendiente.realizado?'Realizado':'Activo']);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pendRows), 'Pendientes');
+
+  XLSX.writeFile(wb, 'MedPro_Reporte_'+desde+'_'+hasta+'.xlsx');
+  showToast('✅ Excel descargado', 'MedPro_Reporte_'+desde+'_'+hasta+'.xlsx');
+}
+
+
+function saveDriveConfig() {
+  const clientId = document.getElementById('cfg-drive-client-id')?.value?.trim();
+  if (!clientId) { showToast('Client ID requerido', '', true); return; }
+  App.driveClientId = clientId;
+  DRIVE_CONFIG.clientId = clientId;
+  markDirty();
+  showToast('Conectando…', 'Iniciando autenticación con Google');
+  loadGapiScript();
+}
+
+function exportarBackupJSON() {
+  const data = JSON.stringify({
+    version: 7, savedAt: new Date().toISOString(),
+    App: { pacientes: App.pacientes, citas: App.citas, citaSeq: App.citaSeq,
+           equipo: App.equipo, listas: App.listas, secuencias: App.secuencias }
+  }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'MedPro_backup_' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  showToast('✅ Backup exportado', a.download);
+}
+
+function importarBackupJSON() {
+  document.getElementById('import-json-input')?.click();
+}
+
+function procesarImportJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const saved = JSON.parse(e.target.result);
+      if (saved.App) {
+        mergeAppData(saved.App);
+        renderPacientesDashboard();
+        renderPacientesPanel();
+        initDashboard();
+        showToast('✅ Datos importados', 'Guardado: ' + (saved.savedAt ? new Date(saved.savedAt).toLocaleString() : ''));
+      } else {
+        showToast('Formato inválido', 'El archivo no es un backup de MedPro', true);
+      }
+    } catch(ex) {
+      showToast('Error al leer', ex.message, true);
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// Wire markDirty to key save operations
+const _origSaveNuevoPacienteFn = typeof saveNuevoPaciente === 'function' ? saveNuevoPaciente : null;
+const _origSaveNuevaCitaFn = typeof saveNuevaCita === 'function' ? saveNuevaCita : null;
+
+// Auto-init Drive if clientId saved
+document.addEventListener('DOMContentLoaded', () => {
+  // Always start with correct status
+  updateDriveStatusUI('no-config');
+
+  if (App.driveClientId) {
+    const cfgInput = document.getElementById('cfg-drive-client-id');
+    if (cfgInput) cfgInput.value = App.driveClientId;
+    // Auto-connect if clientId is saved
+    setTimeout(loadGapiScript, 1500);
+  }
+  // Save on page unload
+  window.addEventListener('beforeunload', () => {
+    if (driveState.pendingChanges && DRIVE_CONFIG.isSignedIn) {
+      saveToDrive(true);
+    }
+  });
+});
 
 </script>
 </body>
