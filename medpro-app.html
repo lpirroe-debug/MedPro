@@ -1259,41 +1259,36 @@ input[type="color"] {
     </div>
     <div style="font-family:'Instrument Serif',serif;font-size:30px;color:white">MedPro</div>
     <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px">Dr. Leonardo Pirro Estévez · Hospital Pacífica Salud</div>
-    <div style="font-size:10px;color:rgba(0,168,150,0.6);margin-top:2px">v7.1 — login activo</div>
   </div>
 
-  <div id="login-file-section" style="width:100%;max-width:340px;background:rgba(255,255,255,0.07);border-radius:14px;padding:20px;border:1px solid rgba(255,255,255,0.1)">
-    <div style="text-align:center;margin-bottom:16px">
-      <div style="font-size:24px;margin-bottom:6px">📁</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.6)" id="login-file-name">Sin archivo de datos</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:3px" id="login-file-hint">Selecciona o crea tu archivo para comenzar</div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <button id="btn-login-biometric" onclick="loginConHuella()" style="display:none;width:100%;padding:14px;background:#00A896;border:none;border-radius:10px;color:white;font-size:15px;font-weight:600;cursor:pointer;align-items:center;justify-content:center;gap:8px">
-        <span style="font-size:20px">👆</span> Entrar con huella
-      </button>
-      <button id="btn-login-pin" onclick="loginConPIN()" style="display:none;width:100%;padding:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:14px;cursor:pointer">
-        🔢 Entrar con PIN
-      </button>
-      <button onclick="fsaSeleccionarArchivoLogin()" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:rgba(255,255,255,0.7);font-size:13px;cursor:pointer">
-        📂 Abrir archivo existente
-      </button>
-      <button onclick="fsaCrearArchivoLogin()" style="width:100%;padding:11px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:rgba(255,255,255,0.4);font-size:13px;cursor:pointer">
-        📄 Crear archivo nuevo
-      </button>
-    </div>
-  </div>
+  <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px">
 
-  <div id="login-pin-section" style="display:none;width:100%;max-width:340px">
-    <div style="text-align:center;color:rgba(255,255,255,0.7);margin-bottom:14px;font-size:14px">Ingresa tu PIN</div>
-    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:14px">
-      <input type="password" inputmode="numeric" maxlength="1" class="pin-input" id="pin-0" oninput="pinNext(0)">
-      <input type="password" inputmode="numeric" maxlength="1" class="pin-input" id="pin-1" oninput="pinNext(1)">
-      <input type="password" inputmode="numeric" maxlength="1" class="pin-input" id="pin-2" oninput="pinNext(2)">
-      <input type="password" inputmode="numeric" maxlength="1" class="pin-input" id="pin-3" oninput="pinNext(3)">
+    <!-- PIN entry (shown when PIN configured) -->
+    <div id="login-pin-section" style="display:none;background:rgba(255,255,255,0.07);border-radius:14px;padding:20px;border:1px solid rgba(255,255,255,0.1)">
+      <div style="text-align:center;color:rgba(255,255,255,0.7);margin-bottom:14px;font-size:14px">Ingresa tu PIN</div>
+      <div style="display:flex;gap:12px;justify-content:center;margin-bottom:14px">
+        <input type="password" inputmode="numeric" maxlength="1" class="pin-input" id="pin-0" oninput="pinNext(0)">
+        <input type="password" inputmode="numeric" maxlength="1" class="pin-input" id="pin-1" oninput="pinNext(1)">
+        <input type="password" inputmode="numeric" maxlength="1" class="pin-input" id="pin-2" oninput="pinNext(2)">
+        <input type="password" inputmode="numeric" maxlength="1" class="pin-input" id="pin-3" oninput="pinNext(3)">
+      </div>
+      <button onclick="verificarPIN()" style="width:100%;padding:12px;background:#00A896;border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer">Entrar</button>
     </div>
-    <button onclick="verificarPIN()" style="width:100%;padding:12px;background:#00A896;border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer">Entrar</button>
-    <button onclick="cancelarPIN()" style="width:100%;padding:9px;background:none;border:none;color:rgba(255,255,255,0.35);font-size:12px;cursor:pointer;margin-top:6px">Cancelar</button>
+
+    <!-- Main enter button -->
+    <button id="btn-login-entrar" onclick="loginEntrar()" style="width:100%;padding:16px;background:#00A896;border:none;border-radius:12px;color:white;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px">
+      <span style="font-size:22px">▶️</span> Entrar al app
+    </button>
+
+    <!-- Import backup -->
+    <button onclick="loginImportarBackup()" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:rgba(255,255,255,0.7);font-size:13px;cursor:pointer">
+      📂 Restaurar desde backup
+    </button>
+    <input type="file" id="login-import-input" accept=".json" style="display:none" onchange="loginProcesarImport(this)">
+
+    <div style="font-size:11px;color:rgba(255,255,255,0.25);text-align:center;margin-top:4px">
+      Los datos se guardan automáticamente en este navegador
+    </div>
   </div>
 </div>
 
@@ -12085,6 +12080,151 @@ function autoGuardar() {
   }
 }
 
+
+
+// ══════════════════════════════════════════════════════════════
+// AUTENTICACIÓN SIMPLIFICADA
+// ══════════════════════════════════════════════════════════════
+
+var AUTH = { isAuthenticated: false, pinHash: null };
+var AUTH_STORAGE_KEY = 'medpro_auth_v1';
+
+function initAuth() {
+  // Load PIN config
+  try {
+    var saved = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)||'{}');
+    AUTH.pinHash = saved.pinHash || null;
+  } catch(e) {}
+
+  // Always show login screen
+  var ls = document.getElementById('login-screen');
+  if (ls) { ls.style.display = 'flex'; ls.style.opacity = '1'; }
+
+  // If PIN configured, show PIN entry; otherwise show enter button
+  var pinSection = document.getElementById('login-pin-section');
+  var enterBtn = document.getElementById('btn-login-entrar');
+  if (AUTH.pinHash) {
+    if (pinSection) pinSection.style.display = 'block';
+    if (enterBtn) enterBtn.style.display = 'none';
+    setTimeout(function() { document.getElementById('pin-0')?.focus(); }, 200);
+  } else {
+    if (pinSection) pinSection.style.display = 'none';
+    if (enterBtn) enterBtn.style.display = 'flex';
+  }
+}
+
+function loginEntrar() {
+  entrarAlApp();
+}
+
+function loginImportarBackup() {
+  document.getElementById('login-import-input')?.click();
+}
+
+function loginProcesarImport(input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      var src = data.App || data;
+      if (src.pacientes) App.pacientes = src.pacientes;
+      if (src.citas)     App.citas     = src.citas;
+      if (src.citaSeq)   App.citaSeq   = src.citaSeq;
+      if (src.equipo)    App.equipo    = src.equipo;
+      if (src.listas)    App.listas    = src.listas;
+      if (src.secuencias) App.secuencias = src.secuencias;
+      guardarLocal();
+      entrarAlApp();
+      showToast('✅ Datos restaurados', file.name);
+    } catch(ex) {
+      showToast('Error al importar', ex.message, true);
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function entrarAlApp() {
+  AUTH.isAuthenticated = true;
+  var loginScreen = document.getElementById('login-screen');
+  if (loginScreen) {
+    loginScreen.style.opacity = '0';
+    loginScreen.style.transition = 'opacity 0.3s';
+    setTimeout(function() { loginScreen.style.display = 'none'; }, 300);
+  }
+  renderPacientesDashboard();
+  renderPacientesPanel();
+  initDashboard();
+}
+
+function cerrarSesion() {
+  guardarLocal();
+  AUTH.isAuthenticated = false;
+  initAuth();
+  showToast('✅ Sesión cerrada', 'Datos guardados');
+}
+
+// PIN functions
+function pinNext(idx) {
+  var el = document.getElementById('pin-'+idx);
+  if (!el) return;
+  el.value = el.value.slice(-1).replace(/\D/g,'');
+  if (el.value && idx < 3) setTimeout(function(){document.getElementById('pin-'+(idx+1))?.focus();},50);
+  if (idx === 3 && el.value) verificarPIN();
+}
+
+async function hashPIN(pin) {
+  var buf = new TextEncoder().encode(pin + 'medpro_salt_2024');
+  var hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+}
+
+async function verificarPIN() {
+  var pin = [0,1,2,3].map(function(i){return document.getElementById('pin-'+i)?.value||'';}).join('');
+  if (pin.length < 4) return;
+  var hash = await hashPIN(pin);
+  if (hash === AUTH.pinHash) {
+    entrarAlApp();
+  } else {
+    showToast('PIN incorrecto','',true);
+    [0,1,2,3].forEach(function(i){var el=document.getElementById('pin-'+i);if(el)el.value='';});
+    document.getElementById('pin-0')?.focus();
+  }
+}
+
+// Setup PIN from settings
+async function configurarPIN() {
+  var pin = prompt('Ingresa un PIN de 4 dígitos (deja vacío para quitar el PIN):');
+  if (pin === null) return;
+  if (pin === '') {
+    AUTH.pinHash = null;
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({}));
+    showToast('PIN eliminado','');
+    return;
+  }
+  if (!/^\d{4}$/.test(pin)) { showToast('PIN inválido','Debe ser exactamente 4 dígitos',true); return; }
+  var confirm = prompt('Confirma el PIN:');
+  if (confirm !== pin) { showToast('PINs no coinciden','',true); return; }
+  AUTH.pinHash = await hashPIN(pin);
+  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({pinHash: AUTH.pinHash}));
+  showToast('✅ PIN configurado','');
+}
+
+// Dummy functions for FSA (kept for compatibility)
+function fsaSeleccionarArchivoLogin() { loginImportarBackup(); }
+function fsaCrearArchivoLogin() { loginEntrar(); }
+function fsaGuardarEnArchivo(silent) { guardarLocal(); return Promise.resolve(true); }
+function fsaUpdateUI() {}
+function loginConHuella() { loginEntrar(); }
+function loginConPIN() {
+  var ps = document.getElementById('login-pin-section');
+  if (ps) ps.style.display = 'block';
+}
+function cancelarPIN() {
+  var ps = document.getElementById('login-pin-section');
+  if (ps) ps.style.display = 'none';
+}
 
 </script>
 </body>
