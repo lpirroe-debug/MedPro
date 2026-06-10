@@ -11243,7 +11243,7 @@ function initDriveClient(clientId) {
       scope: DRIVE_CONFIG.scope,
       callback: function(tokenResponse) {
         if (tokenResponse.error) {
-          showToast('Error de autenticación', tokenResponse.error, true);
+          showToast('Error de autenticación', tokenResponse.error_description || tokenResponse.error, true);
           updateDriveStatusUI('signed-out');
           return;
         }
@@ -11255,11 +11255,14 @@ function initDriveClient(clientId) {
         loadFromDrive();
       },
     });
+    // Ready to sign in - show button
     updateDriveStatusUI('signed-out');
+    showToast('Listo', 'Toca "Iniciar sesión con Google" para conectar');
   }).catch(function(err) {
     console.error('Drive init error:', err);
     updateDriveStatusUI('error');
-    showToast('Error', 'Verifica el Client ID y los orígenes autorizados', true);
+    var msg = err.message || JSON.stringify(err);
+    showToast('Error de configuración', msg.substring(0,80), true);
   });
 }
 
@@ -11274,7 +11277,14 @@ function signInGoogle() {
     loadDriveLibraries(function() { initDriveClient(clientId); setTimeout(signInGoogle, 500); });
     return;
   }
-  DRIVE_CONFIG.tokenClient.requestAccessToken({ prompt: 'consent' });
+  // On mobile, use empty prompt to avoid popup issues
+  var prompt = DRIVE_CONFIG.accessToken ? '' : 'consent';
+  try {
+    DRIVE_CONFIG.tokenClient.requestAccessToken({ prompt: prompt });
+  } catch(e) {
+    showToast('Error', 'No se pudo abrir la ventana de Google. Verifica que no esté bloqueada.', true);
+    console.error('Token request error:', e);
+  }
 }
 
 function signOutGoogle() {
@@ -11309,8 +11319,8 @@ function updateDriveStatusUI(status) {
   var topbarSync = document.getElementById('topbar-sync-btn');
 
   var states = {
-    'no-config':  { icon:'☁️',  text:'Sin configurar',   color:'var(--text-lt)', btnIn:false, btnOut:false, btnSync:false },
-    'signed-out': { icon:'🔒',  text:'No conectado',     color:'var(--text-lt)', btnIn:true,  btnOut:false, btnSync:false },
+    'no-config':  { icon:'⭕',  text:'Sin configurar',   color:'var(--text-lt)', btnIn:false, btnOut:false, btnSync:false },
+    'signed-out': { icon:'🔓',  text:'No conectado',     color:'var(--text-lt)', btnIn:true,  btnOut:false, btnSync:false },
     'signed-in':  { icon:'✅',  text:'Conectado',         color:'var(--teal)',    btnIn:false, btnOut:true,  btnSync:true  },
     'syncing':    { icon:'🔄',  text:'Sincronizando…',   color:'var(--blue)',    btnIn:false, btnOut:false, btnSync:false },
     'synced':     { icon:'☁️',  text:'Sincronizado',      color:'var(--teal)',    btnIn:false, btnOut:true,  btnSync:true  },
@@ -11625,13 +11635,16 @@ function procesarImportJSON(input) {
 
 // ── Auto-init ─────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
-  updateDriveStatusUI('no-config');
+  // Always start as not configured until proven otherwise
+  setTimeout(function() { updateDriveStatusUI('no-config'); }, 100);
+  
   if (App.driveClientId) {
     var cfgInput = document.getElementById('cfg-drive-client-id');
     if (cfgInput) cfgInput.value = App.driveClientId;
+    // Load libraries but don't auto-sign-in - user must tap the button
     setTimeout(function() {
       loadDriveLibraries(function() { initDriveClient(App.driveClientId); });
-    }, 1500);
+    }, 2000);
   }
   window.addEventListener('beforeunload', function() {
     if (driveState.pendingChanges && DRIVE_CONFIG.isSignedIn) saveToDrive(true);
