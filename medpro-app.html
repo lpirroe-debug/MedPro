@@ -1248,7 +1248,7 @@ input[type="color"] {
 <body>
 
 <!-- LOGIN SCREEN -->
-<div id="login-screen" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0D2137 0%,#1A3A52 60%,#0D2137 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:20px">
+<div id="login-screen" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0D2137 0%,#1A3A52 60%,#0D2137 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:20px">
   <div style="text-align:center">
     <div style="width:72px;height:72px;background:rgba(0,168,150,0.2);border:2px solid #00A896;border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
       <svg viewBox="0 0 24 24" fill="none" stroke="#00A896" stroke-width="2" stroke-linecap="round" width="40" height="40"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
@@ -12054,25 +12054,7 @@ async function cerrarSesion() {
 }
 
 // ── Inicializar en DOMContentLoaded ─────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-  initAuth();
-  // Check if biometric button should show
-  var bioBtn = document.getElementById('btn-login-biometric');
-  var pinBtn = document.getElementById('btn-login-pin');
-  if (bioBtn) bioBtn.style.display = AUTH.hasBiometric ? 'flex' : 'none';
-  if (pinBtn) pinBtn.style.display = AUTH.pinHash ? 'flex' : 'none';
-  // If neither, show as "Entrar directo" if file ready
-  if (!AUTH.hasBiometric && !AUTH.pinHash) {
-    if (bioBtn) {
-      bioBtn.style.display = 'flex';
-      bioBtn.onclick = function() {
-        if (AUTH.fileReady || FSA.fileHandle) entrarAlApp();
-        else showToast('Selecciona un archivo primero', '', true);
-      };
-      bioBtn.innerHTML = '<span style="font-size:22px">▶️</span> Entrar al app';
-    }
-  }
-});
+// Auth init handled by main DOMContentLoaded
 
 // ══════════════════════════════════════════════════════════════
 // GUARDADO EN CADA ACCIÓN IMPORTANTE
