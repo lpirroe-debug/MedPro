@@ -3644,7 +3644,7 @@ Gracias. Dr. [medico] — [contacto].</textarea>
 </div>
 
 <!-- Modal: Vista previa de impresión -->
-<div class="modal-overlay" id="modal-print-preview" style="z-index:500">
+<div class="modal-overlay" id="modal-print-preview" style="z-index:99998" style="z-index:99998">
   <div class="modal" style="max-width:900px;width:95vw;max-height:95vh">
     <div class="modal-header">
       <div>
@@ -6809,9 +6809,7 @@ function imprimirDocumento(docId) {
   win.document.close();
 }
 
-function descargarPDF(docId) {
-  showToast('PDF generado', 'Integración con PDF se activa en Fase 7 (Google Drive)');
-}
+// descargarPDF: see ADDITIONS v7.3 below
 
 function enviarWhatsAppPaciente() {
   const p = getPacienteActivo();
@@ -10964,9 +10962,7 @@ function ejecutarImpresion() {
   win.document.close();
 }
 
-function descargarPDFReal() {
-  showToast('PDF', 'Exportación a PDF disponible en Fase 7');
-}
+// descargarPDFReal: stub removed
 
 // Hook into imprimirDocumento to use the preview
 function imprimirDocumento(docId) {
