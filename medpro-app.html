@@ -1244,12 +1244,10 @@ input[type="color"] {
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- LOGIN v7.3 -->
 <div id="login-screen" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0D2137 0%,#1A3A52 60%,#0D2137 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:20px">
   <div style="text-align:center">
-    <div style="width:72px;height:72px;background:rgba(0,168,150,0.2);border:2px solid #00A896;border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#00A896" stroke-width="2" stroke-linecap="round" width="40" height="40"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-    </div>
+    <div style="width:72px;height:72px;background:rgba(0,168,150,0.2);border:2px solid #00A896;border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px"><svg viewBox="0 0 24 24" fill="none" stroke="#00A896" stroke-width="2" stroke-linecap="round" width="40" height="40"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
     <div style="font-family:'Instrument Serif',serif;font-size:32px;color:white">MedPro</div>
     <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px">Dr. Leonardo Pirro Estévez · Hospital Pacífica Salud · Panamá</div>
     <div style="font-size:10px;color:rgba(0,168,150,0.7);margin-top:3px;font-weight:700">v7.3</div>
@@ -1268,9 +1266,7 @@ input[type="color"] {
     <button id="btn-login-entrar" onclick="entrarAlApp()" style="width:100%;padding:16px;background:#00A896;border:none;border-radius:12px;color:white;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px">
       <span style="font-size:20px">▶️</span> Entrar al app
     </button>
-    <button onclick="loginImportarBackup()" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:rgba(255,255,255,0.65);font-size:13px;cursor:pointer">
-      📂 Restaurar desde backup
-    </button>
+    <button onclick="loginImportarBackup()" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:rgba(255,255,255,0.65);font-size:13px;cursor:pointer">📂 Restaurar desde backup</button>
     <input type="file" id="login-import-input" accept=".json" style="display:none" onchange="loginProcesarImport(this)">
     <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:center">Datos guardados automáticamente en este navegador</div>
   </div>
@@ -1342,9 +1338,7 @@ input[type="color"] {
         <div class="user-role">Cirugía General</div>
       </div>
     </div>
-    <button onclick="cerrarSesion()" style="width:100%;margin-top:8px;padding:9px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-      🔒 Cerrar sesión
-    </button>
+    <button onclick="cerrarSesion()" style="width:100%;margin-top:8px;padding:9px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">🔒 Cerrar sesión</button>
   </div>
 </aside>
 
@@ -1356,8 +1350,8 @@ input[type="color"] {
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-title" id="topbar-title">Dashboard</div>
-    <button onclick="guardarLocal();showToast('✅ Guardado','')" title="Guardar" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 8px;color:var(--text-lt)">💾</button>
     <div style="font-size:10px;color:var(--text-lt);padding:0 4px">v7.3</div>
+    <button onclick="guardarLocal();showToast('✅ Guardado','')" title="Guardar" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 8px;color:var(--text-lt)">💾</button>
     <div class="topbar-search">
       <span class="search-icon">🔍</span>
       <input class="search-input" type="text" placeholder="Buscar pacientes, documentos…">
@@ -3081,11 +3075,12 @@ Gracias. Dr. [medico] — [contacto].</textarea>
         </div>
       </div><!-- /cfg-mensajes -->
 
+      <!-- ── TAB: SEGURIDAD ── -->
       <div id="cfg-drive" class="cfg-tab-content" style="display:none">
         <div class="card">
           <div class="card-header"><div class="card-title">💾 Datos y Respaldo</div></div>
           <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
-            <div style="font-size:13px;color:var(--text-mid)">Los datos se guardan automáticamente en este navegador. Exporta un backup periódicamente para mayor seguridad.</div>
+            <div style="font-size:13px;color:var(--text-mid)">Datos guardados automáticamente en este navegador. Exporta un backup periódicamente.</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn btn-primary btn-sm" onclick="exportarBackupJSON()">↓ Exportar backup JSON</button>
               <button class="btn btn-ghost btn-sm" onclick="importarBackupJSON()">↑ Importar backup JSON</button>
@@ -3095,60 +3090,16 @@ Gracias. Dr. [medico] — [contacto].</textarea>
           </div>
         </div>
       </div>
-      <!-- ── TAB: SEGURIDAD ── -->
       <div id="cfg-seguridad" class="cfg-tab-content">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-
-          <div class="card">
-            <div class="card-header"><div class="card-title">🔒 Acceso a la App</div></div>
-            <div class="card-body" style="display:flex;flex-direction:column;gap:14px">
-              <div class="form-group">
-                <label class="form-label">PIN de acceso</label>
-                <input class="form-input" type="password" placeholder="4-6 dígitos · dejar vacío para desactivar">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Tiempo de bloqueo automático</label>
-                <select class="form-input">
-                  <option>1 minuto</option>
-                  <option>5 minutos</option>
-                  <option selected>15 minutos</option>
-                  <option>30 minutos</option>
-                  <option>Nunca</option>
-                </select>
-              </div>
-              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
-                <input type="checkbox" style="accent-color:var(--teal);width:16px;height:16px">
-                Huella digital / Face ID (si el dispositivo lo soporta)
-              </label>
-              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
-                <input type="checkbox" style="accent-color:var(--teal);width:16px;height:16px">
-                Cerrar sesión automáticamente al salir de la app
-              </label>
-            </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔢 PIN de acceso</div>
+            <div class="card-subtitle">Protege el app con un PIN de 4 dígitos</div>
           </div>
-
-          <div class="card">
-            <div class="card-header"><div class="card-title">☁️ Google Drive</div></div>
-            <div class="card-body" style="display:flex;flex-direction:column;gap:14px">
-              <div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--teal-lt);border-radius:var(--radius-sm)">
-                <div style="width:36px;height:36px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px">G</div>
-                <div>
-                  <div style="font-size:13px;font-weight:500">Cuenta vinculada</div>
-                  <div style="font-size:12px;color:var(--text-lt)">leopirro@gmail.com</div>
-                </div>
-                <span class="tag tag-teal" style="margin-left:auto">✓ Activo</span>
-              </div>
-              <div style="font-size:12px;color:var(--text-mid)">Última sincronización: hace 2 minutos</div>
-              <div style="font-size:12px;color:var(--text-mid)">Espacio utilizado: 124 MB de 15 GB</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button class="btn btn-ghost btn-sm">🔄 Forzar sincronización</button>
-                <button class="btn btn-ghost btn-sm">💾 Gestionar respaldos</button>
-                <button class="btn btn-ghost btn-sm">📁 Ver en Drive</button>
-              </div>
-              <button class="btn btn-danger btn-sm" style="width:fit-content">Desvincular cuenta Google</button>
-            </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:13px;color:var(--text-mid)">Al configurar un PIN se pedirá cada vez que abras el app.</div>
+            <button class="btn btn-primary btn-sm" onclick="configurarPIN()">🔢 Configurar / Cambiar PIN</button>
           </div>
-
         </div>
       </div><!-- /cfg-seguridad -->
       </div><!-- /cfg-tabs-wrapper -->
@@ -4640,9 +4591,9 @@ document.addEventListener('DOMContentLoaded', () => {
   renderEquipo();
 
   // Render initial patients
-  var _hadLocal = typeof cargarLocal === 'function' && cargarLocal();
+  var _hadLocal = typeof cargarLocal==='function' && cargarLocal();
   if (!_hadLocal) initTestData();
-  if (typeof initAuth === 'function') initAuth();
+  if (typeof initAuth==='function') initAuth();
   else { renderPacientesDashboard(); renderPacientesPanel(); initDashboard(); }
 });
 
@@ -11109,6 +11060,7 @@ function seleccionarPacienteDocRapido(pi, tipo) {
 }
 
 
+// ══ ADDITIONS v7.3 ══
 // ══════════════════════════════════════════════════════════════
 // PERSISTENCIA LOCAL
 // ══════════════════════════════════════════════════════════════
@@ -11120,75 +11072,107 @@ function guardarLocal() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       savedAt: new Date().toISOString(),
-      pacientes: App.pacientes, citas: App.citas, citaSeq: App.citaSeq,
-      equipo: App.equipo, listas: App.listas, secuencias: App.secuencias,
-      bgColor: App.bgColor, logoSrc: App.logoSrc, firmaSrc: App.firmaSrc,
+      pacientes: App.pacientes,
+      citas: App.citas,
+      citaSeq: App.citaSeq,
+      equipo: App.equipo,
+      listas: App.listas,
+      secuencias: App.secuencias,
+      bgColor: App.bgColor,
+      logoSrc: App.logoSrc,
+      firmaSrc: App.firmaSrc,
     }));
     _localDirty = false;
     return true;
   } catch(e) {
-    if (e.name === 'QuotaExceededError') showToast('Almacenamiento lleno', 'Exporta un backup', true);
+    if (e.name === 'QuotaExceededError')
+      showToast('Almacenamiento lleno', 'Exporta un backup', true);
     return false;
   }
 }
 
 function cargarLocal() {
   try {
-    var d = JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    var d = JSON.parse(raw);
     if (!d) return false;
     if (d.pacientes && d.pacientes.length) App.pacientes = d.pacientes;
-    if (d.citas && d.citas.length) App.citas = d.citas;
-    if (d.citaSeq) App.citaSeq = d.citaSeq;
-    if (d.equipo) App.equipo = d.equipo;
-    if (d.listas) App.listas = d.listas;
-    if (d.secuencias) App.secuencias = d.secuencias;
-    if (d.bgColor) App.bgColor = d.bgColor;
-    if (d.logoSrc) App.logoSrc = d.logoSrc;
-    if (d.firmaSrc) App.firmaSrc = d.firmaSrc;
+    if (d.citas && d.citas.length)         App.citas      = d.citas;
+    if (d.citaSeq)                          App.citaSeq    = d.citaSeq;
+    if (d.equipo)                           App.equipo     = d.equipo;
+    if (d.listas)                           App.listas     = d.listas;
+    if (d.secuencias)                       App.secuencias = d.secuencias;
+    if (d.bgColor)                          App.bgColor    = d.bgColor;
+    if (d.logoSrc)                          App.logoSrc    = d.logoSrc;
+    if (d.firmaSrc)                         App.firmaSrc   = d.firmaSrc;
     return true;
   } catch(e) { return false; }
 }
 
-function autoGuardar() { _localDirty = true; guardarLocal(); }
+function autoGuardar() {
+  _localDirty = true;
+  guardarLocal();
+}
 
-setInterval(function() { if (_localDirty) guardarLocal(); }, 30000);
+// Auto-save every 30s
+setInterval(function() {
+  if (_localDirty) guardarLocal();
+}, 30000);
+
+// Save on exit
 window.addEventListener('pagehide', guardarLocal);
 window.addEventListener('beforeunload', guardarLocal);
 
-function exportarBackupJSON() {
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify({
-    version:7, savedAt:new Date().toISOString(),
-    pacientes:App.pacientes, citas:App.citas, citaSeq:App.citaSeq,
-    equipo:App.equipo, listas:App.listas, secuencias:App.secuencias
-  }, null, 2)], {type:'application/json'}));
-  a.download = 'MedPro_backup_'+new Date().toISOString().split('T')[0]+'.json';
-  a.click();
-  showToast('Backup exportado', a.download);
+// Save on panel change
+var _origShowPanel = typeof showPanel === 'function' ? showPanel : null;
+if (_origShowPanel) {
+  showPanel = function(id, navEl) {
+    _origShowPanel(id, navEl);
+    if (_localDirty) guardarLocal();
+  };
 }
 
-function importarBackupJSON() { document.getElementById('import-json-input')?.click(); }
+// Backup export/import
+function exportarBackupJSON() {
+  var data = JSON.stringify({
+    version: 7, savedAt: new Date().toISOString(),
+    pacientes: App.pacientes, citas: App.citas, citaSeq: App.citaSeq,
+    equipo: App.equipo, listas: App.listas, secuencias: App.secuencias
+  }, null, 2);
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data], {type:'application/json'}));
+  a.download = 'MedPro_backup_' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  showToast('✅ Backup exportado', a.download);
+}
+
+function importarBackupJSON() {
+  document.getElementById('import-json-input')?.click();
+}
 
 function procesarImportJSON(input) {
   var file = input.files[0]; if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
     try {
-      var d = JSON.parse(e.target.result), src = d.App||d;
+      var d = JSON.parse(e.target.result);
+      var src = d.App || d;
       if (src.pacientes) App.pacientes = src.pacientes;
-      if (src.citas) App.citas = src.citas;
-      if (src.equipo) App.equipo = src.equipo;
-      if (src.listas) App.listas = src.listas;
+      if (src.citas)     App.citas     = src.citas;
+      if (src.equipo)    App.equipo    = src.equipo;
+      if (src.listas)    App.listas    = src.listas;
       guardarLocal();
       renderPacientesDashboard(); renderPacientesPanel(); initDashboard();
-      showToast('Datos importados', file.name);
+      showToast('✅ Datos importados', file.name);
     } catch(ex) { showToast('Error', ex.message, true); }
   };
-  reader.readAsText(file); input.value = '';
+  reader.readAsText(file);
+  input.value = '';
 }
 
 // ══════════════════════════════════════════════════════════════
-// AUTENTICACIÓN
+// AUTENTICACIÓN SIMPLE
 // ══════════════════════════════════════════════════════════════
 
 var AUTH = { isAuthenticated: false, pinHash: null };
@@ -11196,247 +11180,258 @@ var AUTH_KEY = 'medpro_auth_v1';
 
 function initAuth() {
   try {
-    var s = JSON.parse(localStorage.getItem(AUTH_KEY)||'{}');
-    AUTH.pinHash = s.pinHash || null;
+    var saved = JSON.parse(localStorage.getItem(AUTH_KEY)||'{}');
+    AUTH.pinHash = saved.pinHash || null;
   } catch(e) {}
+
   var ls = document.getElementById('login-screen');
   if (ls) { ls.style.display = 'flex'; ls.style.opacity = '1'; }
-  var pinSec = document.getElementById('login-pin-section');
+
+  var pinSection = document.getElementById('login-pin-section');
   var enterBtn = document.getElementById('btn-login-entrar');
   if (AUTH.pinHash) {
-    if (pinSec) pinSec.style.display = 'block';
-    if (enterBtn) enterBtn.style.display = 'none';
+    if (pinSection) pinSection.style.display = 'block';
+    if (enterBtn)   enterBtn.style.display   = 'none';
     setTimeout(function(){ document.getElementById('pin-0')?.focus(); }, 200);
   } else {
-    if (pinSec) pinSec.style.display = 'none';
-    if (enterBtn) enterBtn.style.display = 'flex';
+    if (pinSection) pinSection.style.display = 'none';
+    if (enterBtn)   enterBtn.style.display   = 'flex';
   }
 }
 
 function entrarAlApp() {
   AUTH.isAuthenticated = true;
   var ls = document.getElementById('login-screen');
-  if (ls) { ls.style.transition='opacity 0.3s'; ls.style.opacity='0'; setTimeout(function(){ ls.style.display='none'; },300); }
-  renderPacientesDashboard(); renderPacientesPanel(); initDashboard();
-  guardarLocal();
+  if (ls) {
+    ls.style.transition = 'opacity 0.3s';
+    ls.style.opacity = '0';
+    setTimeout(function(){ ls.style.display = 'none'; }, 300);
+  }
+  renderPacientesDashboard();
+  renderPacientesPanel();
+  initDashboard();
+  // Update badge counts
   setTimeout(actualizarBadges, 500);
 }
 
 function cerrarSesion() {
-  guardarLocal(); AUTH.isAuthenticated = false; initAuth();
-  showToast('Sesión cerrada', 'Datos guardados');
+  guardarLocal();
+  AUTH.isAuthenticated = false;
+  initAuth();
+  showToast('✅ Sesión cerrada', 'Datos guardados');
 }
 
-function loginImportarBackup() { document.getElementById('login-import-input')?.click(); }
+function loginImportarBackup() {
+  document.getElementById('login-import-input')?.click();
+}
 
 function loginProcesarImport(input) {
   var file = input.files[0]; if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
     try {
-      var d = JSON.parse(e.target.result), src = d.App||d;
+      var d = JSON.parse(e.target.result);
+      var src = d.App || d;
       if (src.pacientes) App.pacientes = src.pacientes;
-      if (src.citas) App.citas = src.citas;
-      if (src.equipo) App.equipo = src.equipo;
-      if (src.listas) App.listas = src.listas;
-      guardarLocal(); entrarAlApp();
-      showToast('Datos restaurados', '');
+      if (src.citas)     App.citas     = src.citas;
+      if (src.equipo)    App.equipo    = src.equipo;
+      if (src.listas)    App.listas    = src.listas;
+      guardarLocal();
+      entrarAlApp();
+      showToast('✅ Datos restaurados', '');
     } catch(ex) { showToast('Error', ex.message, true); }
   };
-  reader.readAsText(file); input.value = '';
+  reader.readAsText(file);
+  input.value = '';
 }
 
+// PIN functions
 function pinNext(idx) {
   var el = document.getElementById('pin-'+idx);
   if (!el) return;
   el.value = el.value.slice(-1).replace(/\D/g,'');
-  if (el.value && idx < 3) setTimeout(function(){ document.getElementById('pin-'+(idx+1))?.focus(); },50);
-  if (idx===3 && el.value) verificarPIN();
+  if (el.value && idx < 3) setTimeout(function(){ document.getElementById('pin-'+(idx+1))?.focus(); }, 50);
+  if (idx === 3 && el.value) verificarPIN();
 }
 
 async function hashPIN(pin) {
-  var buf = new TextEncoder().encode(pin+'medpro_salt_2024');
+  var buf = new TextEncoder().encode(pin + 'medpro_salt_2024');
   var hash = await crypto.subtle.digest('SHA-256', buf);
-  return Array.from(new Uint8Array(hash)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  return Array.from(new Uint8Array(hash)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
 }
 
 async function verificarPIN() {
-  var pin = [0,1,2,3].map(function(i){return document.getElementById('pin-'+i)?.value||'';}).join('');
+  var pin = [0,1,2,3].map(function(i){ return document.getElementById('pin-'+i)?.value||''; }).join('');
   if (pin.length < 4) return;
-  if (await hashPIN(pin) === AUTH.pinHash) { entrarAlApp(); }
-  else {
-    showToast('PIN incorrecto','',true);
-    [0,1,2,3].forEach(function(i){ var e=document.getElementById('pin-'+i); if(e) e.value=''; });
+  if (await hashPIN(pin) === AUTH.pinHash) {
+    entrarAlApp();
+  } else {
+    showToast('PIN incorrecto', '', true);
+    [0,1,2,3].forEach(function(i){ var el = document.getElementById('pin-'+i); if(el) el.value=''; });
     document.getElementById('pin-0')?.focus();
   }
 }
 
 async function configurarPIN() {
-  var pin = prompt('PIN de 4 dígitos (deja vacío para quitar el PIN):');
+  var pin = prompt('PIN de 4 dígitos (vacío para quitar):');
   if (pin === null) return;
   if (pin === '') {
     AUTH.pinHash = null;
     localStorage.setItem(AUTH_KEY, '{}');
-    showToast('PIN eliminado',''); return;
+    showToast('PIN eliminado', '');
+    return;
   }
-  if (!/^\d{4}$/.test(pin)) { showToast('Debe ser exactamente 4 dígitos','',true); return; }
+  if (!/^\d{4}$/.test(pin)) { showToast('Debe ser 4 dígitos', '', true); return; }
   var confirm = prompt('Confirma el PIN:');
-  if (confirm !== pin) { showToast('Los PINs no coinciden','',true); return; }
+  if (confirm !== pin) { showToast('Los PINs no coinciden', '', true); return; }
   AUTH.pinHash = await hashPIN(pin);
-  localStorage.setItem(AUTH_KEY, JSON.stringify({pinHash:AUTH.pinHash}));
-  showToast('PIN configurado','');
+  localStorage.setItem(AUTH_KEY, JSON.stringify({pinHash: AUTH.pinHash}));
+  showToast('✅ PIN configurado', '');
 }
 
+// ── Badge counter ─────────────────────────────────────────────
 function actualizarBadges() {
+  // Patients count
+  var pBadge = document.querySelector('.nav-item span.nav-badge');
+  // Update nav badges
   document.querySelectorAll('.nav-item').forEach(function(item) {
-    var spans = item.querySelectorAll('span');
-    if (spans.length < 2) return;
-    var txt = item.textContent||'';
-    if (txt.includes('Pacientes')) spans[spans.length-1].textContent = App.pacientes.length;
-    if (txt.includes('Pendientes')) {
-      var n=0;
-      App.pacientes.forEach(function(p){(p.episodios||[]).forEach(function(ep){(ep.pendientes||[]).forEach(function(pd){if(!pd.realizado)n++;});});});
-      spans[spans.length-1].textContent = n;
+    var text = item.textContent || '';
+    if (text.includes('Pacientes')) {
+      var badge = item.querySelector('span:last-child');
+      if (badge && badge !== item.querySelector('span:first-child'))
+        badge.textContent = App.pacientes.length;
+    }
+    if (text.includes('Pendientes')) {
+      var badge = item.querySelector('span:last-child');
+      if (badge && badge !== item.querySelector('span:first-child')) {
+        var count = 0;
+        App.pacientes.forEach(function(p) {
+          (p.episodios||[]).forEach(function(ep) {
+            (ep.pendientes||[]).forEach(function(pend) {
+              if (!pend.realizado) count++;
+            });
+          });
+        });
+        badge.textContent = count;
+      }
     }
   });
 }
 
-// Hook saves after DOMContentLoaded
+// Hook autoGuardar to key saves
 document.addEventListener('DOMContentLoaded', function() {
+  // Override key save functions to auto-save after
+  var hookSave = function(fnName) {
+    var orig = window[fnName];
+    if (typeof orig === 'function') {
+      window[fnName] = function() {
+        var result = orig.apply(this, arguments);
+        autoGuardar();
+        actualizarBadges();
+        return result;
+      };
+    }
+  };
   setTimeout(function() {
-    ['saveNuevoPaciente','saveNuevaCita','saveProtocolo','saveEvolucion','saveHC'].forEach(function(fn) {
-      var orig = window[fn];
-      if (typeof orig === 'function') {
-        window[fn] = function() {
-          var r = orig.apply(this, arguments);
-          guardarLocal(); actualizarBadges();
-          return r;
-        };
-      }
-    });
-  }, 500);
+    ['saveNuevoPaciente','saveNuevaCita','saveProtocolo','saveEvolucion','saveHC'].forEach(hookSave);
+  }, 100);
 });
 
-// Drive stubs
+// Drive stubs (kept for UI compatibility)
 var DRIVE_CONFIG = { isSignedIn: false };
 var driveState = { pendingChanges: false };
-function saveToDrive(s) { if(!s) showToast('Drive no configurado','Usa exportar backup JSON'); }
+function saveToDrive(silent) { if(!silent) showToast('Drive no configurado','Usa exportar backup JSON'); }
 function signInGoogle() { showToast('Google Drive','Configura el Client ID primero'); }
 function signOutGoogle() {}
 function updateDriveStatusUI(s) {
   var el = document.getElementById('drive-status');
-  var labels = {'no-config':'⭕ Sin configurar','signed-out':'🔓 No conectado','signed-in':'✅ Conectado','syncing':'🔄 Sincronizando','synced':'☁️ Sincronizado','error':'⚠️ Error'};
-  if (el) el.innerHTML = '<span>'+(labels[s]||s)+'</span>';
+  var labels = {'no-config':'⭕ Sin configurar','signed-out':'🔓 No conectado',
+    'signed-in':'✅ Conectado','syncing':'🔄 Sincronizando','synced':'☁️ Sincronizado','error':'⚠️ Error'};
+  if (el) el.innerHTML = '<span>' + (labels[s]||s) + '</span>';
 }
-function saveDriveConfig() { showToast('Google Drive','En desarrollo'); }
+function saveDriveConfig() { showToast('Google Drive','Funcionalidad en desarrollo'); }
 function markDirty() { _localDirty = true; }
 
-// ══════════════════════════════════════════════════════════════
-// GOOGLE CALENDAR — Agregar evento
-// ══════════════════════════════════════════════════════════════
-
-function agregarACitaGoogle(citaId) {
-  var cita = App.citas.find(function(c){ return c.id === citaId; });
-  if (!cita) { showToast('Cita no encontrada','',true); return; }
-  var p = App.pacientes[cita.pacienteIdx];
-  var titulo = encodeURIComponent((cita.tipo||'Cita') + ' — ' + (p ? p.nombre : ''));
-  var fecha = (cita.fecha||'').replace(/-/g,'');
-  var hora = (cita.hora||'08:00').replace(':','');
-  // End time: 1 hour later
-  var horaFin = String(parseInt(hora.substring(0,2))+1).padStart(2,'0') + hora.substring(2);
-  var fechaInicio = fecha + 'T' + hora + '00';
-  var fechaFin = fecha + 'T' + horaFin + '00';
-  var lugar = encodeURIComponent(cita.lugar||'Consultorio');
-  var detalle = encodeURIComponent((cita.diagnostico||'') + (cita.tipo === 'Cirugía' ? ' — Cirugía' : ''));
-  var url = 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
-    '&text=' + titulo +
-    '&dates=' + fechaInicio + '/' + fechaFin +
-    '&location=' + lugar +
-    '&details=' + detalle;
-  window.open(url, '_blank');
-  showToast('Abriendo Google Calendar…','Confirma el evento en la app');
-}
-
-// ══════════════════════════════════════════════════════════════
-// PDF con jsPDF
-// ══════════════════════════════════════════════════════════════
-
-function loadJsPDF(cb) {
-  if (window.jspdf?.jsPDF) { cb(window.jspdf.jsPDF); return; }
-  if (window.jsPDF) { cb(window.jsPDF); return; }
-  var s = document.createElement('script');
-  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-  s.onload = function() { cb(window.jspdf?.jsPDF||window.jsPDF); };
-  s.onerror = function() { showToast('Error de red','No se pudo cargar jsPDF',true); };
-  document.head.appendChild(s);
-}
-
-function descargarPDF(docId) {
-  var ids = {receta:'receta-preview-body',certificado:'certificado-preview-body',
-    orden:'orden-preview-body',informe:'informe-preview-body',solicitud:'solicitud-preview-body'};
-  var el = document.getElementById(ids[docId]||docId+'-preview-body');
-  if (!el) { showToast('Genera el documento primero','',true); return; }
-  showToast('Generando PDF…','');
-  loadJsPDF(function(jsPDF) {
-    var cfg = typeof getDocConfig==='function' ? getDocConfig({receta:'RX',certificado:'CI',orden:'OA',informe:'IM',solicitud:'SA'}[docId]||'RX') : {};
-    var dims = {letter:[215.9,279.4],a4:[210,297],legal:[215.9,355.6],a5:[148,210]}[cfg.size||'letter']||[215.9,279.4];
-    var orient = (cfg.orient||'portrait')==='landscape'?'l':'p';
-    var doc = new jsPDF({orientation:orient,unit:'mm',format:dims});
-    var p = getPacienteActivo();
-    var fname = 'MedPro_'+docId+'_'+(p?p.nombre.replace(/\s+/g,'_'):'doc')+'_'+new Date().toISOString().split('T')[0]+'.pdf';
-    var clone = el.cloneNode(true);
-    clone.style.cssText = 'width:'+(dims[0]-20)+'mm;font-family:Helvetica,Arial,sans-serif;font-size:11px;position:absolute;left:-9999px;top:0';
-    document.body.appendChild(clone);
-    doc.html(clone, {
-      callback: function(d) { document.body.removeChild(clone); d.save(fname); showToast('PDF descargado',fname); },
-      x:10, y:10, width:dims[0]-20, windowWidth:794, autoPaging:'text'
-    });
-  });
-}
-
-// SheetJS
-function loadSheetJS(cb) {
-  if (window.XLSX) { cb(window.XLSX); return; }
-  var s = document.createElement('script');
-  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-  s.onload = function() { cb(window.XLSX); };
-  s.onerror = function() { showToast('Error de red','No se pudo cargar SheetJS',true); };
-  document.head.appendChild(s);
-}
-
-function exportarReporteXLSX() {
-  showToast('Preparando Excel…','');
-  loadSheetJS(function(XLSX) {
-    var p = getReportePeriodo();
-    var wb = XLSX.utils.book_new();
-    var rows = [['Nombre','Seguro','Episodios','Estado']];
-    App.pacientes.forEach(function(pac){ rows.push([pac.nombre,pac.seguro||'',pac.episodios?.length||0,pac.estado||'']); });
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Pacientes');
-    var cr = [['ID','Paciente','Tipo','Fecha','Estado']];
-    (App.citas||[]).filter(function(c){return c.fecha>=p.desde&&c.fecha<=p.hasta;}).forEach(function(c){
-      cr.push([c.id,App.pacientes[c.pacienteIdx]?.nombre||'',c.tipo,c.fecha,c.estado||'']);
-    });
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cr), 'Citas');
-    XLSX.writeFile(wb,'MedPro_'+p.desde+'_'+p.hasta+'.xlsx');
-    showToast('Excel descargado','');
-  });
-}
-
-// renderBarChart
 function renderBarChart(data, color) {
   var entries = Object.entries(data);
   var max = Math.max.apply(null, entries.map(function(e){return e[1];}));
   if (max===0) max=1;
   var barH=120, barW=Math.max(32,Math.floor(460/Math.max(entries.length,1))-8);
-  return '<div style="display:flex;align-items:flex-end;gap:6px;height:'+(barH+44)+'px;overflow-x:auto;padding-bottom:4px">'+
+  return '<div style="display:flex;align-items:flex-end;gap:6px;height:'+(barH+44)+'px;overflow-x:auto">'+
     entries.map(function(e){
       var h=Math.max(4,Math.round(e[1]/max*barH));
       return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">'+
-        '<div style="font-size:12px;font-weight:700;color:var(--text)">'+e[1]+'</div>'+
+        '<div style="font-size:12px;font-weight:700">'+e[1]+'</div>'+
         '<div style="width:'+barW+'px;background:'+color+';border-radius:4px 4px 0 0;height:'+h+'px"></div>'+
-        '<div style="font-size:10px;color:var(--text-lt);text-align:center;width:'+(barW+8)+'px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+e[0]+'">'+e[0]+'</div>'+
+        '<div style="font-size:10px;color:var(--text-lt);text-align:center;width:'+(barW+8)+'px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e[0]+'</div>'+
         '</div>';
     }).join('')+'</div>';
+}
+
+function agregarACitaGoogle(citaId) {
+  var cita = App.citas.find(function(c){ return c.id===citaId; });
+  if (!cita) { showToast('Cita no encontrada','',true); return; }
+  var p = App.pacientes[cita.pacienteIdx];
+  var titulo = encodeURIComponent((cita.tipo||'Cita')+' — '+(p?p.nombre:''));
+  var fecha = (cita.fecha||'').replace(/-/g,'');
+  var hora = (cita.hora||'08:00').replace(':','');
+  var horaFin = String(parseInt(hora.substring(0,2))+1).padStart(2,'0')+hora.substring(2);
+  var url = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+titulo+
+    '&dates='+fecha+'T'+hora+'00/'+fecha+'T'+horaFin+'00'+
+    '&location='+encodeURIComponent(cita.lugar||'Consultorio')+
+    '&details='+encodeURIComponent(cita.diagnostico||'');
+  window.open(url,'_blank');
+  showToast('Abriendo Google Calendar…','Confirma el evento');
+}
+
+function loadJsPDF(cb) {
+  if (window.jspdf?.jsPDF){cb(window.jspdf.jsPDF);return;}
+  if (window.jsPDF){cb(window.jsPDF);return;}
+  var s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  s.onload=function(){cb(window.jspdf?.jsPDF||window.jsPDF);};
+  s.onerror=function(){showToast('Error de red','No se pudo cargar jsPDF',true);};
+  document.head.appendChild(s);
+}
+
+function descargarPDF(docId) {
+  var ids={receta:'receta-preview-body',certificado:'certificado-preview-body',
+    orden:'orden-preview-body',informe:'informe-preview-body',solicitud:'solicitud-preview-body'};
+  var el=document.getElementById(ids[docId]||docId+'-preview-body');
+  if (!el){showToast('Genera el documento primero','',true);return;}
+  showToast('Generando PDF…','');
+  loadJsPDF(function(jsPDF){
+    var cfg=typeof getDocConfig==='function'?getDocConfig({receta:'RX',certificado:'CI',orden:'OA',informe:'IM',solicitud:'SA'}[docId]||'RX'):{};
+    var dims={letter:[215.9,279.4],a4:[210,297],legal:[215.9,355.6],a5:[148,210]}[cfg.size||'letter']||[215.9,279.4];
+    var doc=new jsPDF({orientation:(cfg.orient||'portrait')==='landscape'?'l':'p',unit:'mm',format:dims});
+    var p=getPacienteActivo();
+    var fname='MedPro_'+docId+'_'+(p?p.nombre.replace(/\s+/g,'_'):'doc')+'_'+new Date().toISOString().split('T')[0]+'.pdf';
+    var clone=el.cloneNode(true);
+    clone.style.cssText='width:'+(dims[0]-20)+'mm;font-family:Helvetica,Arial,sans-serif;font-size:11px;position:absolute;left:-9999px;top:0';
+    document.body.appendChild(clone);
+    doc.html(clone,{callback:function(d){document.body.removeChild(clone);d.save(fname);showToast('PDF descargado',fname);},x:10,y:10,width:dims[0]-20,windowWidth:794,autoPaging:'text'});
+  });
+}
+
+function loadSheetJS(cb) {
+  if (window.XLSX){cb(window.XLSX);return;}
+  var s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload=function(){cb(window.XLSX);};
+  document.head.appendChild(s);
+}
+
+function exportarReporteXLSX() {
+  showToast('Preparando Excel…','');
+  loadSheetJS(function(XLSX){
+    var p=getReportePeriodo();
+    var wb=XLSX.utils.book_new();
+    var rows=[['Nombre','Seguro','Episodios']];
+    App.pacientes.forEach(function(pac){rows.push([pac.nombre,pac.seguro||'',pac.episodios?.length||0]);});
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Pacientes');
+    XLSX.writeFile(wb,'MedPro_'+p.desde+'_'+p.hasta+'.xlsx');
+    showToast('Excel descargado','');
+  });
 }
 
 </script>
