@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Registro de Paciente</title>
+<style>
+  :root{
+    --teal:#00A896; --teal-lt:#E6F7F5; --navy:#0D2137; --navy-mid:#1A3A52;
+    --bg:#F7F9FB; --border:#E4EAF0; --border-dk:#CBD5E1;
+    --text:#1E293B; --text-mid:#64748B; --text-lt:#94A3B8;
+    --red:#E05252; --radius:12px; --radius-sm:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); min-height:100vh;
+    padding:0 0 40px;
+  }
+  .topbar{
+    background:var(--navy); color:#fff; padding:22px 20px 26px;
+    text-align:center;
+  }
+  .topbar .icon{font-size:30px;margin-bottom:6px;}
+  .topbar h1{font-size:18px;font-weight:700;margin-bottom:4px;}
+  .topbar p{font-size:13px;color:#B8C4CE;}
+  .wrap{max-width:480px;margin:0 auto;padding:18px 16px;}
+  .callout{
+    background:var(--teal-lt); border:1px solid rgba(0,168,150,0.25);
+    border-radius:var(--radius-sm); padding:12px 14px; font-size:13px;
+    color:var(--navy-mid); margin-bottom:18px; line-height:1.5;
+  }
+  .section-label{
+    font-size:12px; font-weight:700; color:var(--teal);
+    text-transform:uppercase; letter-spacing:0.04em;
+    margin:22px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--border);
+  }
+  .section-label:first-of-type{margin-top:0;}
+  .form-group{margin-bottom:14px;}
+  .form-row{display:flex; gap:10px;}
+  .form-row .form-group{flex:1; min-width:0;}
+  .form-label{
+    display:block; font-size:12.5px; font-weight:600; color:var(--text-mid);
+    margin-bottom:5px;
+  }
+  .form-label .req{color:var(--red);}
+  .form-input{
+    width:100%; padding:11px 13px; border:1px solid var(--border-dk);
+    border-radius:var(--radius-sm); font-size:14.5px; color:var(--text);
+    background:#fff; font-family:inherit; -webkit-appearance:none; appearance:none;
+  }
+  .form-input:focus{outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(0,168,150,0.12);}
+  select.form-input{
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat:no-repeat; background-position:right 12px center; padding-right:34px;
+  }
+  #campo-otro-seguro{display:none;}
+  .btn-enviar{
+    width:100%; padding:15px; background:var(--teal); color:#fff;
+    border:none; border-radius:var(--radius-sm); font-size:15.5px; font-weight:700;
+    cursor:pointer; margin-top:24px; display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn-enviar:active{background:#008f80;}
+  .footer-note{
+    text-align:center; font-size:11.5px; color:var(--text-lt); margin-top:14px; line-height:1.5;
+  }
+  .error-msg{
+    background:#FDEAEA; border:1px solid rgba(224,82,82,0.3); color:var(--red);
+    border-radius:var(--radius-sm); padding:10px 13px; font-size:13px;
+    margin-bottom:16px; display:none;
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="icon">🩺</div>
+    <h1>Registro de Nuevo Paciente</h1>
+    <p>Complete sus datos y envíelos por WhatsApp</p>
+  </div>
+
+  <div class="wrap">
+    <div class="callout">
+      💡 Por favor complete la siguiente información. Al finalizar, toque <strong>"Enviar por WhatsApp"</strong> y el mensaje se enviará automáticamente al consultorio.
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <form id="form-registro" onsubmit="return false;">
+
+      <div class="section-label">Datos personales</div>
+
+      <div class="form-group">
+        <label class="form-label">Nombre completo <span class="req">*</span></label>
+        <input class="form-input" type="text" id="f-nombre" placeholder="Nombre y apellidos" autocomplete="name">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Sexo <span class="req">*</span></label>
+          <select class="form-input" id="f-sexo">
+            <option value="">Seleccionar...</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Femenino">Femenino</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo de ID <span class="req">*</span></label>
+          <select class="form-input" id="f-tipoid">
+            <option value="Cédula">Cédula</option>
+            <option value="Pasaporte">Pasaporte</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Número de identificación <span class="req">*</span></label>
+        <input class="form-input" type="text" id="f-id" placeholder="Ej: 8-123-4567" autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Fecha de nacimiento <span class="req">*</span></label>
+        <div class="form-row">
+          <input class="form-input" type="number" id="f-fnac-dia" placeholder="Día" min="1" max="31" inputmode="numeric">
+          <input class="form-input" type="number" id="f-fnac-mes" placeholder="Mes" min="1" max="12" inputmode="numeric">
+          <input class="form-input" type="number" id="f-fnac-anio" placeholder="Año" min="1900" max="2026" inputmode="numeric">
+        </div>
+      </div>
+
+      <div class="section-label">Contacto</div>
+
+      <div class="form-group">
+        <label class="form-label">Teléfono / WhatsApp <span class="req">*</span></label>
+        <input class="form-input" type="tel" id="f-tel" placeholder="+507 6000-0000" autocomplete="tel">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Correo electrónico</label>
+        <input class="form-input" type="email" id="f-correo" placeholder="correo@email.com" autocomplete="email">
+      </div>
+
+      <div class="section-label">Seguro médico</div>
+
+      <div class="form-group">
+        <label class="form-label">Aseguradora</label>
+        <select class="form-input" id="f-aseguradora" onchange="document.getElementById('campo-otro-seguro').style.display = this.value==='Otro' ? 'block' : 'none';">
+          <option value="">Particular / Sin seguro</option>
+          <option value="ASSA Seguros">ASSA Seguros</option>
+          <option value="MAPFRE">MAPFRE</option>
+          <option value="PALIG">PALIG</option>
+          <option value="Blue Cross">Blue Cross</option>
+          <option value="World Wide Medical">World Wide Medical</option>
+          <option value="BUPA">BUPA</option>
+          <option value="CIGNA">CIGNA</option>
+          <option value="Vivir">Vivir</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="campo-otro-seguro">
+        <label class="form-label">Nombre de la aseguradora</label>
+        <input class="form-input" type="text" id="f-aseguradora-otro" placeholder="Escriba el nombre">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Número de póliza</label>
+          <input class="form-input" type="text" id="f-poliza" placeholder="Opcional">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número de certificado</label>
+          <input class="form-input" type="text" id="f-certificado" placeholder="Opcional">
+        </div>
+      </div>
+
+      <button class="btn-enviar" onclick="enviarRegistro()">
+        📱 Enviar por WhatsApp
+      </button>
+
+      <div class="footer-note">
+        Sus datos se enviarán directamente por WhatsApp al consultorio.<br>No se almacena ninguna información en este dispositivo.
+      </div>
+    </form>
+  </div>
+
+<script>
+  // ════════════════════════════════════════════════════════
+  // NÚMERO DE WHATSAPP DEL CONSULTORIO
+  // Cambiar aquí si el número cambia en el futuro.
+  // ════════════════════════════════════════════════════════
+  var NUMERO_WHATSAPP_CONSULTORIO = '50766141726';
+
+  // Correo del consultorio para la opción de respaldo por email.
+  // Dejar como '' (vacío) para ocultar esa opción.
+  var CORREO_CONSULTORIO = 'lpirroe@gmail.com';
+
+  function enviarRegistro() {
+    var errEl = document.getElementById('error-msg');
+    errEl.style.display = 'none';
+
+    var nombre = document.getElementById('f-nombre').value.trim();
+    var sexo = document.getElementById('f-sexo').value;
+    var tipoId = document.getElementById('f-tipoid').value;
+    var idNum = document.getElementById('f-id').value.trim();
+    var dia = document.getElementById('f-fnac-dia').value.trim();
+    var mes = document.getElementById('f-fnac-mes').value.trim();
+    var anio = document.getElementById('f-fnac-anio').value.trim();
+    var tel = document.getElementById('f-tel').value.trim();
+    var correo = document.getElementById('f-correo').value.trim();
+    var aseguradoraSel = document.getElementById('f-aseguradora').value;
+    var aseguradoraOtro = document.getElementById('f-aseguradora-otro').value.trim();
+    var poliza = document.getElementById('f-poliza').value.trim();
+    var certificado = document.getElementById('f-certificado').value.trim();
+
+    // Validación de campos obligatorios
+    var faltantes = [];
+    if (!nombre) faltantes.push('Nombre completo');
+    if (!sexo) faltantes.push('Sexo');
+    if (!idNum) faltantes.push('Número de identificación');
+    if (!dia || !mes || !anio) faltantes.push('Fecha de nacimiento completa');
+    if (!tel) faltantes.push('Teléfono / WhatsApp');
+
+    if (faltantes.length > 0) {
+      errEl.textContent = 'Por favor complete: ' + faltantes.join(', ') + '.';
+      errEl.style.display = 'block';
+      errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    var diaFmt = dia.padStart(2, '0');
+    var mesFmt = mes.padStart(2, '0');
+    var fechaNac = diaFmt + '/' + mesFmt + '/' + anio;
+
+    var aseguradoraFinal = aseguradoraSel === 'Otro' ? (aseguradoraOtro || 'Otro') : (aseguradoraSel || 'Particular');
+
+    // ────────────────────────────────────────────────────────
+    // Formato estructurado: cada línea con etiqueta fija en
+    // mayúsculas seguida de ":" — esto permite que MedPro lo
+    // reconozca automáticamente al pegarlo en Nuevo Paciente.
+    // ────────────────────────────────────────────────────────
+    var lineas = [
+      'REGISTRO DE NUEVO PACIENTE',
+      '',
+      'NOMBRE: ' + nombre,
+      'SEXO: ' + sexo,
+      'TIPO_ID: ' + tipoId,
+      'ID: ' + idNum,
+      'FECHA_NACIMIENTO: ' + fechaNac,
+      'TELEFONO: ' + tel,
+      'CORREO: ' + (correo || '-'),
+      'ASEGURADORA: ' + aseguradoraFinal,
+      'POLIZA: ' + (poliza || '-'),
+      'CERTIFICADO: ' + (certificado || '-')
+    ];
+
+    var mensaje = lineas.join('\n');
+    var urlWA = 'https://wa.me/' + NUMERO_WHATSAPP_CONSULTORIO + '?text=' + encodeURIComponent(mensaje);
+
+    // Safari en iOS es muy estricto: solo abre ventanas/enlaces si la
+    // acción ocurre EN EL MISMO instante del toque, sin demoras (setTimeout)
+    // de por medio. Por eso intentamos abrir directo y, sin esperar a
+    // verificar si funcionó, mostramos también el botón de respaldo y las
+    // alternativas de correo y SMS de inmediato.
+    var nuevaVentana = window.open(urlWA, '_blank');
+    if (!nuevaVentana) {
+      window.location.href = urlWA;
+    }
+    mostrarOpcionesRespaldo(mensaje, urlWA);
+  }
+
+  function mostrarOpcionesRespaldo(mensaje, urlWA) {
+    var existente = document.getElementById('opciones-respaldo');
+    if (existente) existente.remove();
+
+    var urlSMS = 'sms:' + NUMERO_WHATSAPP_CONSULTORIO + '?body=' + encodeURIComponent(mensaje);
+    var urlCorreo = 'mailto:' + CORREO_CONSULTORIO +
+      '?subject=' + encodeURIComponent('Registro de nuevo paciente') +
+      '&body=' + encodeURIComponent(mensaje);
+
+    var div = document.createElement('div');
+    div.id = 'opciones-respaldo';
+    div.style.cssText = 'margin-top:14px;display:flex;flex-direction:column;gap:10px;';
+
+    var titulo = document.createElement('div');
+    titulo.textContent = 'Si no se abrió WhatsApp automáticamente, elija una opción:';
+    titulo.style.cssText = 'font-size:12.5px;color:var(--text-mid);text-align:center;margin-bottom:2px;';
+    div.appendChild(titulo);
+
+    function crearBoton(href, texto, bg) {
+      var a = document.createElement('a');
+      a.href = href;
+      a.textContent = texto;
+      a.style.cssText = 'display:block;width:100%;padding:14px;background:' + bg + ';color:#fff;border-radius:8px;font-size:14.5px;font-weight:700;text-decoration:none;box-sizing:border-box;text-align:center;';
+      return a;
+    }
+
+    div.appendChild(crearBoton(urlWA, '📱 Abrir WhatsApp', '#00A896'));
+    if (CORREO_CONSULTORIO) {
+      div.appendChild(crearBoton(urlCorreo, '✉️ Enviar por correo', '#3B82F6'));
+    }
+    div.appendChild(crearBoton(urlSMS, '💬 Enviar por SMS', '#64748B'));
+
+    document.getElementById('form-registro').appendChild(div);
+    div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+</script>
+</body>
+</html>
