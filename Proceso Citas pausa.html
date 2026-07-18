@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proceso de Verificación de Seguridad Quirúrgica — MedVision ↔ Cellbyte</title>
+<style>
+  :root{
+    --bg:#F5F7F6;
+    --surface:#FFFFFF;
+    --ink:#16302E;
+    --muted:#5F7472;
+    --teal:#0F4C4C;
+    --teal-dark:#0A3838;
+    --steel:#3D7A8C;
+    --line:#D8E1DF;
+    --warn:#B07C1F;
+    --warn-bg:#FBF2E2;
+    --bad:#B3423A;
+    --bad-bg:#FBEBEA;
+    --ok:#2E7D5B;
+    --ok-bg:#E9F5EF;
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: "SF Mono", "Consolas", "Menlo", "IBM Plex Mono", monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);-webkit-font-smoothing:antialiased;min-height:100vh;}
+  .wrap{max-width:860px;margin:0 auto;padding:26px 20px 60px;}
+
+  header{border-bottom:2px solid var(--teal);padding-bottom:16px;margin-bottom:20px;}
+  header .eyebrow{font-family:var(--font-mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;}
+  header h1{font-size:19px;margin:0;color:var(--teal-dark);font-weight:700;}
+  header p{font-size:13px;color:var(--muted);margin:6px 0 0;}
+
+  .scenario-tabs{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
+  .scenario-tabs button{
+    flex:1;min-width:150px;padding:12px 10px;border-radius:8px;border:1.5px solid var(--line);
+    background:#fff;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;
+    font-family:var(--font-ui);text-align:center;line-height:1.3;
+  }
+  .scenario-tabs button.active{border-color:var(--teal);background:var(--teal);color:#fff;}
+
+  .progress-track{display:flex;align-items:center;margin-bottom:26px;}
+  .progress-node{
+    width:28px;height:28px;border-radius:50%;background:#fff;border:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);
+    font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;cursor:pointer;
+  }
+  .progress-node.done{background:var(--steel);border-color:var(--steel);color:#fff;}
+  .progress-node.active{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 0 0 4px rgba(15,76,76,.18);}
+  .progress-line{flex:1;height:2px;background:var(--line);}
+  .progress-line.done{background:var(--steel);}
+
+  .step-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:24px;margin-bottom:20px;
+  }
+  .step-card .system-tag{
+    display:inline-block;font-family:var(--font-mono);font-size:10.5px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.05em;padding:3px 10px;border-radius:20px;margin-bottom:12px;
+  }
+  .system-tag.medvision{background:var(--ok-bg);color:var(--ok);}
+  .system-tag.cellbyte{background:#E5EEF2;color:var(--steel);}
+  .system-tag.personal{background:var(--warn-bg);color:var(--warn);}
+  .system-tag.resultado{background:#EEF2F1;color:var(--muted);}
+
+  .step-card h2{font-size:17px;margin:0 0 10px;color:var(--teal-dark);}
+  .step-card .desc{font-size:14px;line-height:1.6;color:var(--ink);margin-bottom:14px;}
+  .step-card .why{
+    background:#EAF3F1;border-left:3px solid var(--steel);border-radius:6px;
+    padding:12px 14px;font-size:13px;line-height:1.55;color:var(--teal-dark);
+  }
+  .step-card .why b{color:var(--steel);}
+
+  .step-card .note{
+    background:var(--warn-bg);border-left:3px solid var(--warn);border-radius:6px;
+    padding:12px 14px;font-size:13px;line-height:1.55;color:var(--ink);margin-top:12px;
+  }
+  .step-card .note b{color:var(--warn);}
+
+  .outcome-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px;}
+  .outcome-box{border-radius:8px;padding:14px 16px;font-size:13px;line-height:1.5;}
+  .outcome-box.ok{background:var(--ok-bg);border:1px solid var(--ok);color:var(--teal-dark);}
+  .outcome-box.bad{background:var(--bad-bg);border:1px solid var(--bad);color:var(--ink);}
+  .outcome-box .tag{display:block;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;}
+  .outcome-box.ok .tag{color:var(--ok);}
+  .outcome-box.bad .tag{color:var(--bad);}
+
+  .nav-buttons{display:flex;gap:10px;justify-content:space-between;}
+  .nav-buttons button{
+    appearance:none;border:1.5px solid var(--teal);border-radius:8px;padding:11px 20px;
+    font-size:13.5px;font-weight:700;cursor:pointer;font-family:var(--font-ui);
+    background:#fff;color:var(--teal-dark);
+  }
+  .nav-buttons button.primary{background:var(--teal);color:#fff;}
+  .nav-buttons button:disabled{opacity:.35;cursor:default;}
+
+  @media (max-width:560px){
+    .outcome-grid{grid-template-columns:1fr;}
+    .scenario-tabs{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Pacífica Salud · Central de Esterilización y Citas Quirúrgicas</span>
+    <h1>Proceso de Verificación de Seguridad Quirúrgica</h1>
+    <p>Cómo interactúan MedVision y Cellbyte para completar la Pausa de Seguridad — recorre cada escenario paso a paso.</p>
+  </header>
+
+  <div class="scenario-tabs" id="scenarioTabs"></div>
+  <div class="progress-track" id="progressTrack"></div>
+  <div id="stepCardWrap"></div>
+
+  <div class="nav-buttons">
+    <button id="btnPrev">← Anterior</button>
+    <button id="btnNext" class="primary">Siguiente →</button>
+  </div>
+</div>
+
+<script>
+const escenarios = {
+  programado: {
+    label: "Procedimiento\nprogramado",
+    steps: [
+      {
+        system: "medvision",
+        title: "1. El cirujano agenda la cita con Citas Quirúrgicas",
+        desc: "Es el cirujano quien agenda la cita con Citas Quirúrgicas. Al hacerlo, Citas Quirúrgicas busca al paciente en el sistema — el buscador trae los datos de todos los pacientes registrados en Cellbyte, incluyendo su identificador único (PAC ID). Al seleccionar al paciente correcto, la cita queda vinculada a ese PAC ID.",
+        why: "Si se selecciona el paciente equivocado (homónimo, registro duplicado), todo el proceso fallará más adelante: las verificaciones quedarán bien hechas, pero vinculadas al paciente incorrecto, o a ninguno."
+      },
+      {
+        system: "cellbyte",
+        title: "2. La cita se asocia a la admisión, dentro de Cellbyte",
+        desc: "La cita agendada en MedVision pasa hacia la agenda quirúrgica dentro de Cellbyte. Ahí, al admitir al paciente, Oficiales de Admisión asocian esa cita con el número de admisión específico de esta visita.",
+        why: "Un mismo paciente puede tener varias admisiones distintas a lo largo del tiempo. Sin esta asociación, Cellbyte no sabe en cuál admisión debe registrar la información de esta visita."
+      },
+      {
+        system: "cellbyte",
+        title: "3. Se selecciona la cita en el formulario de Pausa de Seguridad",
+        desc: "Como un paciente puede tener varios procedimientos en la misma admisión, cada uno con su propio formulario (5 listas de verificación), la enfermera de preparación selecciona la cita correspondiente. Esto llena automáticamente la sección \"Generales\" (procedimiento, cirujano, anestesiólogo).",
+        why: "Si se selecciona la cita equivocada —o ninguna— entre varios procedimientos del mismo paciente, la información puede terminar en el formulario de otro procedimiento distinto, o no quedar asociada a ninguno.",
+        note: "Si la cita NO aparece para seleccionar: significa que NO fue asociada con la admisión (el paso 2 no se completó). Llame a Admisión (Oficiales de Admisión) para verificar y corregir."
+      },
+      {
+        system: "medvision",
+        title: "4. Se completan las verificaciones en el quirófano",
+        desc: "En la computadora de pared del quirófano (MedVision), se completan en secuencia: preparación de quirófano → pre-anestesia → Pausa de Seguridad (time-out) → verificación post-operatoria (sign-out) → fin de anestesia → salida del paciente.",
+        why: "El orden secuencial confirma que se cumplieron condiciones de seguridad antes de avanzar — por ejemplo, no debe iniciarse la anestesia sin haber completado la verificación pre-anestesia."
+      },
+      {
+        system: "resultado",
+        title: "5. MedVision envía la información a Cellbyte",
+        desc: "Al registrar la salida del paciente, MedVision necesita saber el PAC ID, la admisión y el formulario exactos donde transcribir la información. Además, una antena RFID detecta si el paciente sale físicamente del quirófano sin que todo esté completo.",
+        outcome: true
+      }
+    ]
+  },
+  urgenteEnHorario: {
+    label: "Urgente — dentro\ndel horario",
+    steps: [
+      {
+        system: "personal",
+        title: "1. El cirujano determina la necesidad de cirugía urgente",
+        desc: "El cirujano llama al Salón de Operaciones para verificar la disponibilidad de quirófanos, e informa al personal de enfermería del área donde está el paciente sobre la necesidad de la cirugía urgente y la hora en que se realizará."
+      },
+      {
+        system: "personal",
+        title: "2. Enfermería coordina y el área llama a Citas Quirúrgicas",
+        desc: "Con apoyo de la Enfermera Supervisora, y como es horario de operación normal de Citas Quirúrgicas, el área donde está el paciente (urgencias, hospitalización, etc.) llama para solicitar el agendamiento."
+      },
+      {
+        system: "medvision",
+        title: "3. Citas Quirúrgicas agenda en MedVision",
+        desc: "Se agenda la cita exactamente igual que un caso electivo: buscando al paciente correcto por su PAC ID (traído desde Cellbyte)."
+      },
+      {
+        system: "cellbyte",
+        title: "4. La cita se asocia a la admisión, dentro de Cellbyte",
+        desc: "La cita pasa a la agenda quirúrgica de Cellbyte. Ahí, Oficiales de Admisión asocian la cita recién creada con la admisión actual del paciente."
+      },
+      {
+        system: "cellbyte",
+        title: "5. A partir de aquí, sigue el flujo programado",
+        desc: "Selección de la cita en el formulario de Pausa de Seguridad, verificaciones secuenciales en el quirófano, y envío de la información a Cellbyte — exactamente igual que un procedimiento programado.",
+        note: "Si la cita NO aparece para seleccionar: significa que NO fue asociada con la admisión. Llame a Admisión para verificar y corregir."
+      },
+      {
+        system: "resultado",
+        title: "6. Resultado: envío a Cellbyte (o Pendientes)",
+        desc: "Si los pasos 1-5 se hicieron correctamente y las verificaciones se completan antes de que el RFID detecte la salida, la información llega a Cellbyte. Si no, queda en Pendientes de MedVision.",
+        outcome: true
+      }
+    ]
+  },
+  urgenteFueraHorario: {
+    label: "Urgente — fuera\ndel horario",
+    steps: [
+      {
+        system: "personal",
+        title: "1. El cirujano determina la necesidad de cirugía urgente",
+        desc: "El cirujano llama al Salón de Operaciones para verificar la disponibilidad de quirófanos, e informa al personal de enfermería del área donde está el paciente sobre la necesidad de la cirugía urgente y la hora en que se realizará — en este caso, fuera del horario de operación de Citas Quirúrgicas."
+      },
+      {
+        system: "personal",
+        title: "2. Oficiales de Admisión de Urgencias agendan directo en MedVision",
+        desc: "A diferencia del escenario anterior, aquí es el propio personal de Oficiales de Admisión de Urgencias quien agenda la cita directamente en MedVision (no se llama a Citas Quirúrgicas, que está fuera de horario)."
+      },
+      {
+        system: "cellbyte",
+        title: "3. La cita se asocia a la admisión, dentro de Cellbyte",
+        desc: "La cita pasa a la agenda quirúrgica de Cellbyte. Ahí, el mismo personal de Oficiales de Admisión de Urgencias asocia la cita recién creada con la admisión actual del paciente."
+      },
+      {
+        system: "cellbyte",
+        title: "4. A partir de aquí, sigue el flujo programado",
+        desc: "Selección de la cita en el formulario de Pausa de Seguridad, verificaciones secuenciales en el quirófano, y envío de la información a Cellbyte — exactamente igual que un procedimiento programado.",
+        note: "Si la cita NO aparece para seleccionar: significa que NO fue asociada con la admisión. Llame a Admisión para verificar y corregir."
+      },
+      {
+        system: "resultado",
+        title: "5. Resultado: envío a Cellbyte (o Pendientes)",
+        desc: "Si los pasos 1-4 se hicieron correctamente y las verificaciones se completan antes de que el RFID detecte la salida, la información llega a Cellbyte. Si no, queda en Pendientes de MedVision.",
+        outcome: true
+      }
+    ]
+  }
+};
+
+const systemLabels = { medvision:"MedVision", cellbyte:"Cellbyte", personal:"Personal del hospital", resultado:"Resultado" };
+
+let currentScenario = "programado";
+let currentStep = 0;
+
+function renderTabs(){
+  const wrap = document.getElementById('scenarioTabs');
+  wrap.innerHTML = Object.keys(escenarios).map(key=>{
+    const label = escenarios[key].label.split("\n").join("<br>");
+    return `<button data-key="${key}" class="${key===currentScenario?'active':''}" onclick="cambiarEscenario('${key}')">${label}</button>`;
+  }).join('');
+}
+
+function cambiarEscenario(key){
+  currentScenario = key;
+  currentStep = 0;
+  renderTabs();
+  renderAll();
+}
+
+function renderProgress(){
+  const steps = escenarios[currentScenario].steps;
+  const track = document.getElementById('progressTrack');
+  let html = '';
+  steps.forEach((s, i)=>{
+    const cls = i === currentStep ? 'active' : (i < currentStep ? 'done' : '');
+    html += `<div class="progress-node ${cls}" onclick="irAPaso(${i})">${i+1}</div>`;
+    if(i < steps.length - 1){
+      html += `<div class="progress-line ${i < currentStep ? 'done' : ''}"></div>`;
+    }
+  });
+  track.innerHTML = html;
+}
+
+function irAPaso(i){
+  currentStep = i;
+  renderAll();
+}
+
+function renderStepCard(){
+  const step = escenarios[currentScenario].steps[currentStep];
+  const wrap = document.getElementById('stepCardWrap');
+
+  let outcomeHTML = '';
+  if(step.outcome){
+    outcomeHTML = `
+      <div class="outcome-grid">
+        <div class="outcome-box ok">
+          <span class="tag">✓ Todo correcto</span>
+          La información pasa a Cellbyte y el formulario de Pausa de Seguridad queda completo en el expediente del paciente.
+        </div>
+        <div class="outcome-box bad">
+          <span class="tag">✕ Algo falló</span>
+          La información queda en <b>"Pendientes de MedVision"</b> para recuperación manual — ya sea porque el PAC ID, la admisión o el formulario no quedaron bien asociados, o porque el paciente salió del quirófano (detectado por RFID) sin completar todas las verificaciones.
+        </div>
+      </div>`;
+  }
+
+  wrap.innerHTML = `
+    <div class="step-card">
+      <span class="system-tag ${step.system}">${systemLabels[step.system]}</span>
+      <h2>${step.title}</h2>
+      <div class="desc">${step.desc}</div>
+      ${step.why ? `<div class="why"><b>Por qué importa:</b> ${step.why}</div>` : ''}
+      ${step.note ? `<div class="note">${step.note}</div>` : ''}
+      ${outcomeHTML}
+    </div>
+  `;
+}
+
+function renderNav(){
+  const steps = escenarios[currentScenario].steps;
+  document.getElementById('btnPrev').disabled = currentStep === 0;
+  document.getElementById('btnNext').disabled = currentStep === steps.length - 1;
+}
+
+function renderAll(){
+  renderProgress();
+  renderStepCard();
+  renderNav();
+}
+
+document.getElementById('btnPrev').onclick = ()=>{ if(currentStep>0){ currentStep--; renderAll(); } };
+document.getElementById('btnNext').onclick = ()=>{
+  const steps = escenarios[currentScenario].steps;
+  if(currentStep < steps.length-1){ currentStep++; renderAll(); }
+};
+
+renderTabs();
+renderAll();
+</script>
+
+</body>
+</html>
